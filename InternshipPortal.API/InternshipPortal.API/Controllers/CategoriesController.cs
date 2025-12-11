@@ -1,5 +1,6 @@
 ﻿using InternshipApi.Models;
 using InternshipApi.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InternshipApi.Controllers
@@ -56,6 +57,7 @@ namespace InternshipApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult<Category> Create([FromBody] Category category)
         {
             if (category == null)
@@ -85,6 +87,7 @@ namespace InternshipApi.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize]
         public ActionResult<Category> Update(int id, [FromBody] Category category)
         {
             if (id <= 0)
@@ -116,6 +119,7 @@ namespace InternshipApi.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize]
         public IActionResult Delete(int id)
         {
             if (id <= 0)

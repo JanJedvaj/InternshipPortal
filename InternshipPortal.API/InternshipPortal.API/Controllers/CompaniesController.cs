@@ -1,5 +1,6 @@
 ﻿using InternshipApi.Models;
 using InternshipApi.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InternshipApi.Controllers
@@ -56,6 +57,7 @@ namespace InternshipApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ActionResult<Company> Create([FromBody] Company company)
         {
             if (company == null)
@@ -85,6 +87,7 @@ namespace InternshipApi.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize]
         public ActionResult<Company> Update(int id, [FromBody] Company company)
         {
             if (id <= 0)
@@ -116,6 +119,7 @@ namespace InternshipApi.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize]
         public IActionResult Delete(int id)
         {
             if (id <= 0)
