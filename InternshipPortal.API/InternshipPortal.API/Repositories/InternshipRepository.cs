@@ -13,7 +13,10 @@ namespace InternshipApi.Repositories
 
         public Internship Create(Internship entity)
         {
-            entity.Id = FakeDatabase.Internships.Max(x => x.Id) + 1;
+            entity.Id = FakeDatabase.Internships.Any()
+                ? FakeDatabase.Internships.Max(x => x.Id) + 1
+                : 1;
+
             FakeDatabase.Internships.Add(entity);
             return entity;
         }
@@ -40,6 +43,7 @@ namespace InternshipApi.Repositories
         {
             var item = GetById(id);
             if (item == null) return false;
+
             FakeDatabase.Internships.Remove(item);
             return true;
         }
