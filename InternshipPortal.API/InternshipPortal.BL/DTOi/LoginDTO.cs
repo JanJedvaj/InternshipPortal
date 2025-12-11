@@ -1,11 +1,15 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace InternshipPortal.BL.DTOi
 {
     public class LoginRequest
     {
+        [Required(ErrorMessage = "Korisnicko ime je obavezno.")]
+       
         public string Username { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Lozinka je obavezna.")]
         public string Password { get; set; } = string.Empty;
     }
 
