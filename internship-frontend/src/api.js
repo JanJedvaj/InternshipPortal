@@ -1,5 +1,3 @@
-
-
 const API_BASE_URL = "https://localhost:7027";
 
 export async function getInternships() {
@@ -11,6 +9,7 @@ export async function getInternships() {
 
   return response.json();
 }
+
 export async function login(username, password) {
   const response = await fetch(`${API_BASE_URL}/api/Auth/login`, {
     method: "POST",
@@ -34,11 +33,10 @@ export async function login(username, password) {
     throw new Error("Greška na serveru prilikom prijave.");
   }
 
-  
   return response.json();
 }
 
-//dohvacanje kategorija
+// dohvaćanje kategorija
 export async function getCategories() {
   const response = await fetch(`${API_BASE_URL}/api/Categories`);
 
@@ -49,7 +47,7 @@ export async function getCategories() {
   return response.json();
 }
 
-//dohvacanje tvrtka
+// dohvaćanje tvrtki
 export async function getCompanies() {
   const response = await fetch(`${API_BASE_URL}/api/Companies`);
 
@@ -60,7 +58,7 @@ export async function getCompanies() {
   return response.json();
 }
 
-//kreiranje internshipa
+// kreiranje internshipa
 export async function createInternship(internship, token) {
   const response = await fetch(`${API_BASE_URL}/api/Internships`, {
     method: "POST",
@@ -81,4 +79,44 @@ export async function createInternship(internship, token) {
   }
 
   return response.json();
+}
+
+// UPDATE internshipa
+export async function updateInternship(id, internship) {
+  const response = await fetch(`${API_BASE_URL}/api/Internships/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(internship),
+  });
+
+  if (response.status === 404) {
+    throw new Error("Praksa nije pronađena.");
+  }
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Greška prilikom ažuriranja prakse.");
+  }
+
+  return response.json();
+}
+
+// DELETE internshipa
+export async function deleteInternship(id) {
+  const response = await fetch(`${API_BASE_URL}/api/Internships/${id}`, {
+    method: "DELETE",
+  });
+
+  if (response.status === 404) {
+    throw new Error("Praksa nije pronađena.");
+  }
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Greška prilikom brisanja prakse.");
+  }
+
+  return true;
 }
