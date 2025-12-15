@@ -33,6 +33,8 @@ function App() {
     setReloadId(prev => prev + 1);
   }
 
+  const isLoggedIn = !!auth;
+
   return (
     <div
       style={{
@@ -51,8 +53,20 @@ function App() {
         <h1 style={{ margin: 0, textAlign: "center" }}>Internship Portal</h1>
       </header>
 
-      <main>
-        {!auth ? (
+      <main
+        style={
+          !isLoggedIn
+            ? {
+                minHeight: "calc(100vh - 80px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 16px",
+              }
+            : { padding: "0 16px 32px" }
+        }
+      >
+        {!isLoggedIn ? (
           <LoginForm onLoginSuccess={handleLoginSuccess} />
         ) : (
           <div style={{ maxWidth: "900px", margin: "0 auto" }}>
@@ -70,7 +84,6 @@ function App() {
               <button onClick={handleLogout}>Odjava</button>
             </div>
 
-            
             <AddInternshipForm
               token={auth.token}
               onCreated={handleInternshipCreated}
@@ -80,7 +93,6 @@ function App() {
               Dostupne prakse
             </h2>
 
-            
             <InternshipList key={reloadId} />
           </div>
         )}
