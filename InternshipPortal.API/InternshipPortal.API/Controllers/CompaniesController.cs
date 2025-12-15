@@ -1,143 +1,90 @@
-﻿using InternshipApi.Models;
-using InternshipApi.Repositories;
-using Microsoft.AspNetCore.Authorization;
+﻿using InternshipPortal.API.Exceptions;
+using InternshipPortal.API.Models;
+using InternshipPortal.API.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InternshipApi.Controllers
+namespace InternshipPortal.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class CompaniesController : ControllerBase
     {
-        private readonly IRepository<Company> _repo;
+        private readonly ICompanyService _service;
         private readonly ILogger<CompaniesController> _logger;
 
-        public CompaniesController(IRepository<Company> repo, ILogger<CompaniesController> logger)
+        public CompaniesController(ICompanyService service, ILogger<CompaniesController> logger)
         {
-            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _service = service;
+            _logger = logger;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Company>> GetAll()
+        public IActionResult GetAll()
         {
-            try
-            {
-                var items = _repo.GetAll()?.ToList() ?? new List<Company>();
-                return Ok(items);
-            }
+            try { return Ok(_service.GetAll()); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom dohvaćanja svih kompanija.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom dohvaćanja kompanija.");
+                _logger.LogError(ex, "Greška GetAll companies.");
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult<Company> Get(int id)
+        public IActionResult Get(int id)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
-            try
-            {
-                var item = _repo.GetById(id);
-                if (item == null)
-                    return NotFound($"Kompanija s Id={id} nije pronađena.");
-
-                return Ok(item);
-            }
+            try { return Ok(_service.GetById(id)); }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom dohvaćanja kompanije Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom dohvaćanja kompanije.");
+                _logger.LogError(ex, "Greška Get company id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpPost]
-        [Authorize]
-        public ActionResult<Company> Create([FromBody] Company company)
+        public IActionResult Create([FromBody] Company company)
         {
-            if (company == null)
-                return BadRequest("Tijelo zahtjeva je prazno.");
-
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
-
             try
             {
-                var created = _repo.Create(company);
-                if (created == null)
-                {
-                    _logger.LogError("Repozitorij je vratio null prilikom kreiranja kompanije.");
-                    return StatusCode(StatusCodes.Status500InternalServerError,
-                        "Dogodila se greška prilikom kreiranja kompanije.");
-                }
-
+                var created = _service.Create(company);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom kreiranja kompanije.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom kreiranja kompanije.");
+                _logger.LogError(ex, "Greška Create company.");
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpPut("{id:int}")]
-        [Authorize]
-        public ActionResult<Company> Update(int id, [FromBody] Company company)
+        public IActionResult Update(int id, [FromBody] Company company)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
-            if (company == null)
-                return BadRequest("Tijelo zahtjeva je prazno.");
-
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
-
-            if (company.Id != 0 && company.Id != id)
-                return BadRequest("Id u ruti i Id u tijelu zahtjeva moraju biti isti.");
-
-            try
-            {
-                var updated = _repo.Update(id, company);
-                if (updated == null)
-                    return NotFound($"Kompanija s Id={id} nije pronađena za ažuriranje.");
-
-                return Ok(updated);
-            }
+            try { return Ok(_service.Update(id, company)); }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom ažuriranja kompanije Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom ažuriranja kompanije.");
+                _logger.LogError(ex, "Greška Update company id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize]
         public IActionResult Delete(int id)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
             try
             {
-                var ok = _repo.Delete(id);
-                if (!ok)
-                    return NotFound($"Kompanija s Id={id} nije pronađena za brisanje.");
-
+                _service.Delete(id);
                 return NoContent();
             }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom brisanja kompanije Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom brisanja kompanije.");
+                _logger.LogError(ex, "Greška Delete company id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
     }

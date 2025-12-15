@@ -1,6 +1,8 @@
-﻿using InternshipApi.Models;
-using InternshipApi.Repositories;
-using System;
+﻿using InternshipPortal.API.Models;
+using InternshipPortal.API.Repositories;
+using InternshipPortal.API.Repositories.Abstractions;
+using InternshipPortal.API.Services;
+using InternshipPortal.API.Services.Abstractions;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -8,7 +10,7 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Jwt token postavke za nj
+// Jwt token postavke
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
 var jwtIssuer = jwtSection["Issuer"];
@@ -23,10 +25,10 @@ if (string.IsNullOrWhiteSpace(jwtKey))
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-// servisssi
+// Controllers
 builder.Services.AddControllers();
 
-// Swagger + JWT sec
+// Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -36,7 +38,6 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1"
     });
 
-    // Jwt BEarer za Swagger UI
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
         Scheme = "bearer",
@@ -56,14 +57,13 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddSecurityDefinition("Bearer", jwtSecurityScheme);
 
-    // Require Bearer token (you can fine-tune per-endpoint with [AllowAnonymous] etc.)
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         { jwtSecurityScheme, Array.Empty<string>() }
     });
 });
 
-// ---------------- Authentication & JWT ----------------
+// Authentication & JWT
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
 builder.Services
@@ -91,7 +91,7 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// za REACT
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -100,14 +100,24 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-// REPOSITORIJIJ
-builder.Services.AddSingleton<IRepository<Category>, CategoryRepository>();
-builder.Services.AddSingleton<IRepository<Company>, CompanyRepository>();
-builder.Services.AddSingleton<IRepository<Internship>, InternshipRepository>();
+
+builder.Services.AddSingleton<IReadRepository<Category>, CategoryRepository>();
+builder.Services.AddSingleton<IWriteRepository<Category>, CategoryRepository>();
+
+builder.Services.AddSingleton<IReadRepository<Company>, CompanyRepository>();
+builder.Services.AddSingleton<IWriteRepository<Company>, CompanyRepository>();
+
+builder.Services.AddSingleton<IReadRepository<Internship>, InternshipRepository>();
+builder.Services.AddSingleton<IWriteRepository<Internship>, InternshipRepository>();
+
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IInternshipService, InternshipService>();
+
 
 var app = builder.Build();
 
-// Error handlign -> globalno
+// Global error handling
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -122,7 +132,7 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-// ---------------- Middleware pipeline ----------------
+// Middleware pipeline
 app.UseSwagger();
 app.UseSwaggerUI();
 

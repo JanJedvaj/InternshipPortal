@@ -1,7 +1,7 @@
-﻿using InternshipApi.API.Models;
-using InternshipApi.Models;
+﻿using InternshipPortal.API.Models;
+using InternshipPortal.API.Models;
 
-namespace InternshipApi.Data
+namespace InternshipPortal.API.Data
 {
     public static class FakeDatabase
     {
@@ -66,30 +66,29 @@ namespace InternshipApi.Data
             }
         };
 
-        
         public static List<User> Users = new()
-        {
-            new User
-            {
-                Id = 1,
-                Username = "student",
-                Password = "student123",
-                Role = "Student"
-            },
-            new User
-            {
-                Id = 2,
-                Username = "company",
-                Password = "company123",
-                Role = "Company"
-            },
-            new User
-            {
-                Id = 3,
-                Username = "admin",
-                Password = "admin123",
-                Role = "Admin"
-            }
+ {
+     new User
+     {
+         Id = 1,
+         Username = "student",
+         Password = "student123",
+         Role = "Student"
+     },
+     new User
+     {
+         Id = 2,
+         Username = "company",
+         Password = "company123",
+         Role = "Company"
+     },
+     new User
+     {
+         Id = 3,
+         Username = "admin",
+         Password = "admin123",
+         Role = "Admin"
+     }
         };
     }
 }

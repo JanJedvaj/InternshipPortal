@@ -1,13 +1,13 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using InternshipApi.API.Models;
-using InternshipApi.Data;
+using InternshipPortal.API.Models;
+using InternshipPortal.API.Data;
 using InternshipPortal.BL.DTOi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
-namespace InternshipApi.Controllers
+namespace InternshipPortal.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

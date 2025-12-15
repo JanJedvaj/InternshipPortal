@@ -1,41 +1,41 @@
-﻿using InternshipApi.Data;
-using InternshipApi.Models;
+﻿using InternshipPortal.API.Data;
+using InternshipPortal.API.Models;
+using InternshipPortal.API.Repositories.Abstractions;
 
-namespace InternshipApi.Repositories
+namespace InternshipPortal.API.Repositories
 {
-    public class CompanyRepository : IRepository<Company>
+    public class CompanyRepository : IReadRepository<Company>, IWriteRepository<Company>
     {
-        public IEnumerable<Company> GetAll() =>
-            FakeDatabase.Companies;
+        public IEnumerable<Company> GetAll() => FakeDatabase.Companies;
 
-        public Company GetById(int id) =>
-            FakeDatabase.Companies.FirstOrDefault(x => x.Id == id);
+        public Company? GetById(int id)
+            => FakeDatabase.Companies.FirstOrDefault(x => x.Id == id);
 
         public Company Create(Company entity)
         {
-            entity.Id = FakeDatabase.Companies.Max(x => x.Id) + 1;
+            var newId = FakeDatabase.Companies.Any() ? FakeDatabase.Companies.Max(x => x.Id) + 1 : 1;
+            entity.Id = newId;
             FakeDatabase.Companies.Add(entity);
             return entity;
         }
 
-        public Company Update(int id, Company updated)
+        public Company? Update(int id, Company entity)
         {
-            var item = GetById(id);
-            if (item == null) return null;
+            var existing = GetById(id);
+            if (existing == null) return null;
 
-            item.Name = updated.Name;
-            item.Website = updated.Website;
-            item.Location = updated.Location;
+            existing.Name = entity.Name;
+            existing.Website = entity.Website;
+            existing.Location = entity.Location;
 
-            return item;
+            return existing;
         }
 
         public bool Delete(int id)
         {
-            var item = GetById(id);
-            if (item == null) return false;
-            FakeDatabase.Companies.Remove(item);
-            return true;
+            var existing = GetById(id);
+            if (existing == null) return false;
+            return FakeDatabase.Companies.Remove(existing);
         }
     }
 }
