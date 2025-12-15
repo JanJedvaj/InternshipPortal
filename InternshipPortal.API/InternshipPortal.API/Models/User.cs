@@ -1,4 +1,4 @@
-﻿namespace InternshipApi.API.Models
+﻿namespace InternshipPortal.API.Models
 {
     public class User
     {

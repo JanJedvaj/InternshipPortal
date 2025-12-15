@@ -1,161 +1,90 @@
-﻿using InternshipApi.Models;
-using InternshipApi.Repositories;
-using Microsoft.AspNetCore.Authorization;
+﻿using InternshipPortal.API.Exceptions;
+using InternshipPortal.API.Models;
+using InternshipPortal.API.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InternshipApi.Controllers
+namespace InternshipPortal.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class InternshipsController : ControllerBase
     {
-        private readonly IRepository<Internship> _repo;
+        private readonly IInternshipService _service;
         private readonly ILogger<InternshipsController> _logger;
 
-        public InternshipsController(
-            IRepository<Internship> repo,
-            ILogger<InternshipsController> logger)
+        public InternshipsController(IInternshipService service, ILogger<InternshipsController> logger)
         {
-            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _service = service;
+            _logger = logger;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Internship>> GetAll()
+        public IActionResult GetAll()
         {
-            try
-            {
-                var items = _repo.GetAll()?.ToList() ?? new List<Internship>();
-                return Ok(items);
-            }
+            try { return Ok(_service.GetAll()); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom dohvaćanja svih praksi.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom dohvaćanja praksi.");
+                _logger.LogError(ex, "Greška GetAll internships.");
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult<Internship> Get(int id)
+        public IActionResult Get(int id)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
-            try
-            {
-                var item = _repo.GetById(id);
-
-                if (item == null)
-                    return NotFound($"Praksa s Id={id} nije pronađena.");
-
-                return Ok(item);
-            }
+            try { return Ok(_service.GetById(id)); }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom dohvaćanja prakse s Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom dohvaćanja prakse.");
+                _logger.LogError(ex, "Greška Get internship id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpPost]
-        [Authorize]
-        public ActionResult<Internship> Create([FromBody] Internship internship)
+        public IActionResult Create([FromBody] Internship internship)
         {
-            if (internship == null)
-                return BadRequest("Tijelo zahtjeva je prazno.");
-
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
-
             try
             {
-                var created = _repo.Create(internship);
-
-                if (created == null)
-                {
-                    _logger.LogError("Repozitorij je vratio null prilikom kreiranja prakse.");
-                    return StatusCode(StatusCodes.Status500InternalServerError,
-                        "Dogodila se greška prilikom kreiranja prakse.");
-                }
-
+                var created = _service.Create(internship);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
-            catch (InvalidOperationException ex)
-            {
-                
-                _logger.LogError(ex, "Greška domene prilikom kreiranja prakse.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se interna greška prilikom generiranja ID-a prakse.");
-            }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom kreiranja prakse.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom kreiranja prakse.");
+                _logger.LogError(ex, "Greška Create internship.");
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpPut("{id:int}")]
-        [Authorize]
-        public ActionResult<Internship> Update(int id, [FromBody] Internship internship)
+        public IActionResult Update(int id, [FromBody] Internship internship)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
-            if (internship == null)
-                return BadRequest("Tijelo zahtjeva je prazno.");
-
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
-
-            if (internship.Id != 0 && internship.Id != id)
-                return BadRequest("Id u ruti i Id u tijelu zahtjeva moraju biti isti.");
-
-            try
-            {
-                var updated = _repo.Update(id, internship);
-
-                if (updated == null)
-                    return NotFound($"Praksa s Id={id} nije pronađena za ažuriranje.");
-
-                return Ok(updated);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogWarning(ex, "Pokušaj ažuriranja nepostojeće prakse Id={Id}.", id);
-                return NotFound($"Praksa s Id={id} nije pronađena.");
-            }
+            try { return Ok(_service.Update(id, internship)); }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom ažuriranja prakse Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom ažuriranja prakse.");
+                _logger.LogError(ex, "Greška Update internship id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize]
         public IActionResult Delete(int id)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
             try
             {
-                var ok = _repo.Delete(id);
-
-                if (!ok)
-                    return NotFound($"Praksa s Id={id} nije pronađena za brisanje.");
-
+                _service.Delete(id);
                 return NoContent();
             }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom brisanja prakse Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom brisanja prakse.");
+                _logger.LogError(ex, "Greška Delete internship id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
     }

@@ -1,143 +1,90 @@
-﻿using InternshipApi.Models;
-using InternshipApi.Repositories;
-using Microsoft.AspNetCore.Authorization;
+﻿using InternshipPortal.API.Exceptions;
+using InternshipPortal.API.Models;
+using InternshipPortal.API.Services.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace InternshipApi.Controllers
+namespace InternshipPortal.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class CategoriesController : ControllerBase
     {
-        private readonly IRepository<Category> _repo;
+        private readonly ICategoryService _service;
         private readonly ILogger<CategoriesController> _logger;
 
-        public CategoriesController(IRepository<Category> repo, ILogger<CategoriesController> logger)
+        public CategoriesController(ICategoryService service, ILogger<CategoriesController> logger)
         {
-            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _service = service;
+            _logger = logger;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Category>> GetAll()
+        public IActionResult GetAll()
         {
-            try
-            {
-                var items = _repo.GetAll()?.ToList() ?? new List<Category>();
-                return Ok(items);
-            }
+            try { return Ok(_service.GetAll()); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom dohvaćanja svih kategorija.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom dohvaćanja kategorija.");
+                _logger.LogError(ex, "Greška GetAll categories.");
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult<Category> Get(int id)
+        public IActionResult Get(int id)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
-            try
-            {
-                var item = _repo.GetById(id);
-                if (item == null)
-                    return NotFound($"Kategorija s Id={id} nije pronađena.");
-
-                return Ok(item);
-            }
+            try { return Ok(_service.GetById(id)); }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška prilikom dohvaćanja kategorije Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom dohvaćanja kategorije.");
+                _logger.LogError(ex, "Greška Get category id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpPost]
-        [Authorize]
-        public ActionResult<Category> Create([FromBody] Category category)
+        public IActionResult Create([FromBody] Category category)
         {
-            if (category == null)
-                return BadRequest("Tijelo zahtjeva je prazno.");
-
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
-
             try
             {
-                var created = _repo.Create(category);
-                if (created == null)
-                {
-                    _logger.LogError("Repozitorij je vratio null prilikom kreiranja kategorije.");
-                    return StatusCode(StatusCodes.Status500InternalServerError,
-                        "Dogodila se greška prilikom kreiranja kategorije.");
-                }
-
+                var created = _service.Create(category);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom kreiranja kategorije.");
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom kreiranja kategorije.");
+                _logger.LogError(ex, "Greška Create category.");
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpPut("{id:int}")]
-        [Authorize]
-        public ActionResult<Category> Update(int id, [FromBody] Category category)
+        public IActionResult Update(int id, [FromBody] Category category)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
-            if (category == null)
-                return BadRequest("Tijelo zahtjeva je prazno.");
-
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
-
-            if (category.Id != 0 && category.Id != id)
-                return BadRequest("Id u ruti i Id u tijelu zahtjeva moraju biti isti.");
-
-            try
-            {
-                var updated = _repo.Update(id, category);
-                if (updated == null)
-                    return NotFound($"Kategorija s Id={id} nije pronađena za ažuriranje.");
-
-                return Ok(updated);
-            }
+            try { return Ok(_service.Update(id, category)); }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom ažuriranja kategorije Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom ažuriranja kategorije.");
+                _logger.LogError(ex, "Greška Update category id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize]
         public IActionResult Delete(int id)
         {
-            if (id <= 0)
-                return BadRequest("Id mora biti veći od nule.");
-
             try
             {
-                var ok = _repo.Delete(id);
-                if (!ok)
-                    return NotFound($"Kategorija s Id={id} nije pronađena za brisanje.");
-
+                _service.Delete(id);
                 return NoContent();
             }
+            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Neočekivana greška prilikom brisanja kategorije Id={Id}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom brisanja kategorije.");
+                _logger.LogError(ex, "Greška Delete category id={Id}", id);
+                return StatusCode(500, "Dogodila se greška.");
             }
         }
     }

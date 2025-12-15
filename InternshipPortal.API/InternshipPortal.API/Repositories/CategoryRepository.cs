@@ -1,38 +1,38 @@
-﻿using InternshipApi.Data;
-using InternshipApi.Models;
+﻿using InternshipPortal.API.Data;
+using InternshipPortal.API.Models;
+using InternshipPortal.API.Repositories.Abstractions;
 
-namespace InternshipApi.Repositories
+namespace InternshipPortal.API.Repositories
 {
-    public class CategoryRepository : IRepository<Category>
+    public class CategoryRepository : IReadRepository<Category>, IWriteRepository<Category>
     {
-        public IEnumerable<Category> GetAll() =>
-            FakeDatabase.Categories;
+        public IEnumerable<Category> GetAll() => FakeDatabase.Categories;
 
-        public Category GetById(int id) =>
-            FakeDatabase.Categories.FirstOrDefault(x => x.Id == id);
+        public Category? GetById(int id)
+            => FakeDatabase.Categories.FirstOrDefault(x => x.Id == id);
 
         public Category Create(Category entity)
         {
-            entity.Id = FakeDatabase.Categories.Max(x => x.Id) + 1;
+            var newId = FakeDatabase.Categories.Any() ? FakeDatabase.Categories.Max(x => x.Id) + 1 : 1;
+            entity.Id = newId;
             FakeDatabase.Categories.Add(entity);
             return entity;
         }
 
-        public Category Update(int id, Category updated)
+        public Category? Update(int id, Category entity)
         {
-            var item = GetById(id);
-            if (item == null) return null;
+            var existing = GetById(id);
+            if (existing == null) return null;
 
-            item.Name = updated.Name;
-            return item;
+            existing.Name = entity.Name;
+            return existing;
         }
 
         public bool Delete(int id)
         {
-            var item = GetById(id);
-            if (item == null) return false;
-            FakeDatabase.Categories.Remove(item);
-            return true;
+            var existing = GetById(id);
+            if (existing == null) return false;
+            return FakeDatabase.Categories.Remove(existing);
         }
     }
 }

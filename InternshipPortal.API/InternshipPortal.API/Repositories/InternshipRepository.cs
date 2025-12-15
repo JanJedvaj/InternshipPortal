@@ -1,51 +1,47 @@
-﻿using InternshipApi.Data;
-using InternshipApi.Models;
+﻿using InternshipPortal.API.Data;
+using InternshipPortal.API.Models;
+using InternshipPortal.API.Repositories.Abstractions;
 
-namespace InternshipApi.Repositories
+namespace InternshipPortal.API.Repositories
 {
-    public class InternshipRepository : IRepository<Internship>
+    public class InternshipRepository : IReadRepository<Internship>, IWriteRepository<Internship>
     {
-        public IEnumerable<Internship> GetAll() =>
-            FakeDatabase.Internships;
+        public IEnumerable<Internship> GetAll() => FakeDatabase.Internships;
 
-        public Internship GetById(int id) =>
-            FakeDatabase.Internships.FirstOrDefault(x => x.Id == id);
+        public Internship? GetById(int id)
+            => FakeDatabase.Internships.FirstOrDefault(x => x.Id == id);
 
         public Internship Create(Internship entity)
         {
-            entity.Id = FakeDatabase.Internships.Any()
-                ? FakeDatabase.Internships.Max(x => x.Id) + 1
-                : 1;
-
+            var newId = FakeDatabase.Internships.Any() ? FakeDatabase.Internships.Max(x => x.Id) + 1 : 1;
+            entity.Id = newId;
             FakeDatabase.Internships.Add(entity);
             return entity;
         }
 
-        public Internship Update(int id, Internship updated)
+        public Internship? Update(int id, Internship entity)
         {
-            var item = GetById(id);
-            if (item == null) return null;
+            var existing = GetById(id);
+            if (existing == null) return null;
 
-            item.Title = updated.Title;
-            item.ShortDescription = updated.ShortDescription;
-            item.FullDescription = updated.FullDescription;
-            item.CategoryId = updated.CategoryId;
-            item.CompanyId = updated.CompanyId;
-            item.IsFeatured = updated.IsFeatured;
-            item.Remote = updated.Remote;
-            item.Location = updated.Location;
-            item.Deadline = updated.Deadline;
+            existing.Title = entity.Title;
+            existing.ShortDescription = entity.ShortDescription;
+            existing.FullDescription = entity.FullDescription;
+            existing.CategoryId = entity.CategoryId;
+            existing.CompanyId = entity.CompanyId;
+            existing.Deadline = entity.Deadline;
+            existing.IsFeatured = entity.IsFeatured;
+            existing.Remote = entity.Remote;
+            existing.Location = entity.Location;
 
-            return item;
+            return existing;
         }
 
         public bool Delete(int id)
         {
-            var item = GetById(id);
-            if (item == null) return false;
-
-            FakeDatabase.Internships.Remove(item);
-            return true;
+            var existing = GetById(id);
+            if (existing == null) return false;
+            return FakeDatabase.Internships.Remove(existing);
         }
     }
 }
