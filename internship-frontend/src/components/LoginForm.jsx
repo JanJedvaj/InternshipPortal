@@ -28,16 +28,8 @@ export default function LoginForm({ onLoginSuccess }) {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: "400px",
-        margin: "20px auto",
-        padding: "20px",
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-      }}
-    >
-      <h2 style={{ textAlign: "center" }}>Prijava</h2>
+    <div className="form-card form-card--narrow">
+      <h2>Prijava</h2>
 
       {error && (
         <p style={{ color: "red", marginBottom: "10px" }}>
@@ -46,27 +38,37 @@ export default function LoginForm({ onLoginSuccess }) {
       )}
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "10px" }}>
+        <div style={{ marginBottom: "18px", fontSize: "1.08rem" }}>
           <label>
             Korisničko ime:
             <input
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              style={{ width: "100%", padding: "8px", marginTop: "4px" }}
+              style={{
+                width: "100%",
+                padding: "14px 14px",
+                marginTop: "8px",
+                fontSize: "1.05rem",
+              }}
               required
             />
           </label>
         </div>
 
-        <div style={{ marginBottom: "10px" }}>
+        <div style={{ marginBottom: "18px", fontSize: "1.08rem" }}>
           <label>
             Lozinka:
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              style={{ width: "100%", padding: "8px", marginTop: "4px" }}
+              style={{
+                width: "100%",
+                padding: "14px 14px",
+                marginTop: "8px",
+                fontSize: "1.05rem",
+              }}
               required
             />
           </label>
@@ -77,8 +79,9 @@ export default function LoginForm({ onLoginSuccess }) {
           disabled={loading}
           style={{
             width: "100%",
-            padding: "10px",
-            marginTop: "10px",
+            padding: "14px 18px",
+            marginTop: "18px",
+            fontSize: "1.08rem",
             cursor: loading ? "not-allowed" : "pointer",
           }}
         >

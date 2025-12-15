@@ -78,14 +78,7 @@ export default function AddInternshipForm({ token, onCreated }) {
   }
 
   return (
-    <div
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        padding: "16px",
-        marginBottom: "24px",
-      }}
-    >
+    <div className="form-card">
       <h3>Dodaj novu praksu</h3>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
