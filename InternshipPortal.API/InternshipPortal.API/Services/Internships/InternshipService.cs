@@ -1,28 +1,25 @@
-﻿using InternshipPortal.API.Exceptions;
-using InternshipPortal.API.Models;
-using InternshipPortal.API.Repositories.Abstractions;
-using InternshipPortal.API.Services.Abstractions;
+﻿using InternshipPortal.API.Data.EF;
+using InternshipPortal.API.Exceptions;
+using InternshipPortal.API.Repositories.Internships;
 
-namespace InternshipPortal.API.Services
+namespace InternshipPortal.API.Services.Internships
 {
     public class InternshipService : IInternshipService
     {
-        private readonly IReadRepository<Internship> _read;
-        private readonly IWriteRepository<Internship> _write;
+        private readonly IInternshipRepository _repo;
 
-        public InternshipService(IReadRepository<Internship> read, IWriteRepository<Internship> write)
+        public InternshipService(IInternshipRepository repo)
         {
-            _read = read;
-            _write = write;
+            _repo = repo;
         }
 
         public IEnumerable<Internship> GetAll()
-            => _read.GetAll() ?? Enumerable.Empty<Internship>();
+            => _repo.GetAll() ?? Enumerable.Empty<Internship>();
 
         public Internship GetById(int id)
         {
             if (id <= 0) throw new ValidationException("Id mora biti veći od nule.");
-            return _read.GetById(id) ?? throw new NotFoundException($"Praksa s Id={id} nije pronađena.");
+            return _repo.GetById(id) ?? throw new NotFoundException($"Praksa s Id={id} nije pronađena.");
         }
 
         public Internship Create(Internship internship)
@@ -32,7 +29,7 @@ namespace InternshipPortal.API.Services
 
             internship.PostedAt = internship.PostedAt == default ? DateTime.UtcNow : internship.PostedAt;
 
-            return _write.Create(internship);
+            return _repo.Create(internship);
         }
 
         public Internship Update(int id, Internship internship)
@@ -41,13 +38,13 @@ namespace InternshipPortal.API.Services
             if (internship == null) throw new ValidationException("Tijelo zahtjeva je prazno.");
             if (internship.Id != 0 && internship.Id != id) throw new ValidationException("Id u ruti i Id u tijelu zahtjeva moraju biti isti.");
 
-            return _write.Update(id, internship) ?? throw new NotFoundException($"Praksa s Id={id} nije pronađena.");
+            return _repo.Update(id, internship) ?? throw new NotFoundException($"Praksa s Id={id} nije pronađena.");
         }
 
         public void Delete(int id)
         {
             if (id <= 0) throw new ValidationException("Id mora biti veći od nule.");
-            if (!_write.Delete(id)) throw new NotFoundException($"Praksa s Id={id} nije pronađena.");
+            if (!_repo.Delete(id)) throw new NotFoundException($"Praksa s Id={id} nije pronađena.");
         }
     }
 }

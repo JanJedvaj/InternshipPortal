@@ -1,6 +1,6 @@
-﻿using InternshipPortal.API.Models;
+﻿using InternshipPortal.API.Data.EF;
 
-namespace InternshipPortal.API.Services.Abstractions
+namespace InternshipPortal.API.Services.Categories
 {
     public interface ICategoryService
     {

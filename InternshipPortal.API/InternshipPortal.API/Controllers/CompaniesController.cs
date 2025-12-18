@@ -1,6 +1,6 @@
 ﻿using InternshipPortal.API.Exceptions;
-using InternshipPortal.API.Models;
-using InternshipPortal.API.Services.Abstractions;
+using InternshipPortal.API.Services.Companies;
+using InternshipPortal.API.Data.EF;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InternshipPortal.API.Controllers
