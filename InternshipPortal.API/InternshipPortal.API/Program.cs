@@ -1,14 +1,30 @@
-﻿using InternshipPortal.API.Models;
-using InternshipPortal.API.Repositories;
+﻿using InternshipPortal.API.Repositories;
 using InternshipPortal.API.Repositories.Abstractions;
 using InternshipPortal.API.Services;
 using InternshipPortal.API.Services.Abstractions;
+
+using Microsoft.EntityFrameworkCore;
+using InternshipPortal.API.Data.EF;
+
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+// Aliasi za domenske modele (Models.*), ne EF entitete
+using DomainCategory = InternshipPortal.API.Models.Category;
+using DomainCompany = InternshipPortal.API.Models.Company;
+using DomainInternship = InternshipPortal.API.Models.Internship;
+
+
+
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<InternshipPortalContext>(options =>
+    options.UseSqlServer(connectionString));
+
 
 // Jwt token postavke
 var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -101,14 +117,29 @@ builder.Services.AddCors(options =>
 });
 
 
-builder.Services.AddSingleton<IReadRepository<Category>, CategoryRepository>();
-builder.Services.AddSingleton<IWriteRepository<Category>, CategoryRepository>();
+//builder.Services.AddSingleton<IReadRepository<Category>, CategoryRepository>();
+//builder.Services.AddSingleton<IWriteRepository<Category>, CategoryRepository>();
 
-builder.Services.AddSingleton<IReadRepository<Company>, CompanyRepository>();
-builder.Services.AddSingleton<IWriteRepository<Company>, CompanyRepository>();
+//builder.Services.AddSingleton<IReadRepository<Company>, CompanyRepository>();
+//builder.Services.AddSingleton<IWriteRepository<Company>, CompanyRepository>();
 
-builder.Services.AddSingleton<IReadRepository<Internship>, InternshipRepository>();
-builder.Services.AddSingleton<IWriteRepository<Internship>, InternshipRepository>();
+//builder.Services.AddSingleton<IReadRepository<Internship>, InternshipRepository>();
+//builder.Services.AddSingleton<IWriteRepository<Internship>, InternshipRepository>();
+
+// Repozitoriji – koriste domenske modele (Models.*), ne EF entitete
+// i moraju biti Scoped jer koriste DbContext (koji je Scoped).
+builder.Services.AddScoped<IReadRepository<DomainCategory>, CategoryRepository>();
+builder.Services.AddScoped<IWriteRepository<DomainCategory>, CategoryRepository>();
+
+builder.Services.AddScoped<IReadRepository<DomainCompany>, CompanyRepository>();
+builder.Services.AddScoped<IWriteRepository<DomainCompany>, CompanyRepository>();
+
+builder.Services.AddScoped<IReadRepository<DomainInternship>, InternshipRepository>();
+builder.Services.AddScoped<IWriteRepository<DomainInternship>, InternshipRepository>();
+
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICompanyService, CompanyService>();
+builder.Services.AddScoped<IInternshipService, InternshipService>();
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
