@@ -1,22 +1,18 @@
-﻿using InternshipPortal.API.Repositories;
-using InternshipPortal.API.Repositories.Abstractions;
-using InternshipPortal.API.Services;
-using InternshipPortal.API.Services.Abstractions;
+﻿using InternshipPortal.API.Data.EF;
+
+using InternshipPortal.API.Repositories.Categories;
+using InternshipPortal.API.Repositories.Companies;
+using InternshipPortal.API.Repositories.Internships;
+
+using InternshipPortal.API.Services.Categories;
+using InternshipPortal.API.Services.Companies;
+using InternshipPortal.API.Services.Internships;
 
 using Microsoft.EntityFrameworkCore;
-using InternshipPortal.API.Data.EF;
-
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
-// Aliasi za domenske modele (Models.*), ne EF entitete
-using DomainCategory = InternshipPortal.API.Models.Category;
-using DomainCompany = InternshipPortal.API.Models.Company;
-using DomainInternship = InternshipPortal.API.Models.Internship;
-
-
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +21,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<InternshipPortalContext>(options =>
     options.UseSqlServer(connectionString));
 
-
-// Jwt token postavke
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
 var jwtIssuer = jwtSection["Issuer"];
@@ -34,17 +28,16 @@ var jwtAudience = jwtSection["Audience"];
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    throw new InvalidOperationException("JWT Key is not configured in appsettings.json (Jwt:Key).");
+    throw new InvalidOperationException("JWT Key is not configured (Jwt:Key).");
 }
 
-// Logiranje
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-// Controllers
 builder.Services.AddControllers();
 
-// Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -56,18 +49,17 @@ builder.Services.AddSwaggerGen(c =>
 
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
         Scheme = "bearer",
         BearerFormat = "JWT",
-        Name = "Authorization",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Description = "JWT Authorization header using the Bearer scheme.\r\n\r\n" +
-                      "Upišite: 'Bearer {token}'.\r\nPrimjer: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
+        Description = "Upišite: Bearer {token}",
 
         Reference = new OpenApiReference
         {
-            Id = "Bearer",
-            Type = ReferenceType.SecurityScheme
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
         }
     };
 
@@ -79,15 +71,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Authentication & JWT
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-
 builder.Services
-    .AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -116,39 +101,19 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
+//dependency injection - repositories (feature-based)
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+builder.Services.AddScoped<IInternshipRepository, InternshipRepository>();
 
-//builder.Services.AddSingleton<IReadRepository<Category>, CategoryRepository>();
-//builder.Services.AddSingleton<IWriteRepository<Category>, CategoryRepository>();
 
-//builder.Services.AddSingleton<IReadRepository<Company>, CompanyRepository>();
-//builder.Services.AddSingleton<IWriteRepository<Company>, CompanyRepository>();
-
-//builder.Services.AddSingleton<IReadRepository<Internship>, InternshipRepository>();
-//builder.Services.AddSingleton<IWriteRepository<Internship>, InternshipRepository>();
-
-// Repozitoriji – koriste domenske modele (Models.*), ne EF entitete
-// i moraju biti Scoped jer koriste DbContext (koji je Scoped).
-builder.Services.AddScoped<IReadRepository<DomainCategory>, CategoryRepository>();
-builder.Services.AddScoped<IWriteRepository<DomainCategory>, CategoryRepository>();
-
-builder.Services.AddScoped<IReadRepository<DomainCompany>, CompanyRepository>();
-builder.Services.AddScoped<IWriteRepository<DomainCompany>, CompanyRepository>();
-
-builder.Services.AddScoped<IReadRepository<DomainInternship>, InternshipRepository>();
-builder.Services.AddScoped<IWriteRepository<DomainInternship>, InternshipRepository>();
-
+//dependency injection - services (feature-based)
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IInternshipService, InternshipService>();
-
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<ICompanyService, CompanyService>();
-builder.Services.AddScoped<IInternshipService, InternshipService>();
-
 
 var app = builder.Build();
 
-// Global error handling
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -158,12 +123,11 @@ app.UseExceptionHandler(errorApp =>
 
         await context.Response.WriteAsJsonAsync(new
         {
-            Error = "Nešto nije uredu u API-ju. Pogledaj log za detalje."
+            Error = "Dogodila se greška na serveru. Pogledaj logove za detalje."
         });
     });
 });
 
-// Middleware pipeline
 app.UseSwagger();
 app.UseSwaggerUI();
 

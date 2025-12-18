@@ -1,11 +1,11 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using InternshipPortal.API.Models;
-using InternshipPortal.API.Data;
+using InternshipPortal.API.Data.EF;
 using InternshipPortal.BL.DTOi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 
 namespace InternshipPortal.API.Controllers
 {
@@ -15,14 +15,17 @@ namespace InternshipPortal.API.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<AuthController> _logger;
+        private readonly InternshipPortalContext _context;
 
-        public AuthController(IConfiguration configuration, ILogger<AuthController> logger)
+        public AuthController(
+            IConfiguration configuration,
+            ILogger<AuthController> logger,
+            InternshipPortalContext context)
         {
             _configuration = configuration;
             _logger = logger;
+            _context = context;
         }
-
-        // ===================== LOGIN 
 
         [HttpPost("login")]
         [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
@@ -34,7 +37,7 @@ namespace InternshipPortal.API.Controllers
             {
                 if (request == null)
                 {
-                    _logger.LogWarning("Login request je null (prazno tijelo ili neispravan JSON).");
+                    _logger.LogWarning("Login request je null.");
                     return BadRequest("Neispravno tijelo zahtjeva.");
                 }
 
@@ -44,19 +47,10 @@ namespace InternshipPortal.API.Controllers
                     return BadRequest("Username i password su obavezni.");
                 }
 
-                var users = FakeDatabase.Users;
-                if (users == null)
-                {
-                    _logger.LogError("FakeDatabase.Users je null – nije inicijaliziran.");
-                    return StatusCode(StatusCodes.Status500InternalServerError,
-                        "Interna greška: korisnici nisu inicijalizirani.");
-                }
+                var user = _context.Users.FirstOrDefault(u =>
+                    u.Username == request.Username);
 
-                var user = users.FirstOrDefault(u =>
-                    u.Username.Equals(request.Username, StringComparison.OrdinalIgnoreCase) &&
-                    u.Password == request.Password);
-
-                if (user == null)
+                if (user == null || user.Password != request.Password)
                 {
                     return Unauthorized("Neispravno korisničko ime ili lozinka.");
                 }
@@ -72,14 +66,13 @@ namespace InternshipPortal.API.Controllers
                 if (string.IsNullOrWhiteSpace(key))
                 {
                     _logger.LogError("JWT Key nije konfiguriran (Jwt:Key).");
-                    return StatusCode(StatusCodes.Status500InternalServerError,
-                        "Greška u konfiguraciji JWT-a.");
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Greška u konfiguraciji JWT-a.");
                 }
 
                 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
                 var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
-                var role = string.IsNullOrWhiteSpace(user.Role) ? "User" : user.Role;
+                var role = string.IsNullOrWhiteSpace(user.Role) ? "Student" : user.Role;
 
                 var claims = new List<Claim>
                 {
@@ -103,28 +96,20 @@ namespace InternshipPortal.API.Controllers
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                var response = new LoginResponse
+                return Ok(new LoginResponse
                 {
                     Token = tokenString,
                     ExpiresAtUtc = expires,
                     Username = user.Username,
                     Role = role
-                };
-
-                return Ok(response);
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Neočekivana greška prilikom prijave korisnika {Username}.",
-                    request?.Username);
-
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom prijave.");
+                _logger.LogError(ex, "Neočekivana greška prilikom prijave korisnika {Username}.", request?.Username);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Dogodila se greška prilikom prijave.");
             }
         }
-
-        // == Registracija
 
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -136,66 +121,29 @@ namespace InternshipPortal.API.Controllers
             {
                 if (request == null)
                 {
-                    _logger.LogWarning("Register request je null (prazno tijelo ili neispravan JSON).");
+                    _logger.LogWarning("Register request je null.");
                     return BadRequest("Neispravno tijelo zahtjeva.");
                 }
 
-                // Validacija modela (data anotacije9
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
-
-                if (string.IsNullOrWhiteSpace(request.Username) ||
-                    string.IsNullOrWhiteSpace(request.Password) ||
-                    string.IsNullOrWhiteSpace(request.ConfirmPassword))
-                {
-                    return BadRequest("Korisničko ime, lozinka i potvrda lozinke su obavezni.");
-                }
-
-                // Should already be validated by [Compare], ali provjera ne škodi
-                if (!string.Equals(request.Password, request.ConfirmPassword, StringComparison.Ordinal))
-                {
-                    return BadRequest("Lozinka i potvrda lozinke se ne podudaraju.");
-                }
-
-                var users = FakeDatabase.Users;
-                if (users == null)
-                {
-                    _logger.LogError("FakeDatabase.Users je null – nije inicijaliziran.");
-                    return StatusCode(StatusCodes.Status500InternalServerError,
-                        "Interna greška: korisnici nisu inicijalizirani.");
-                }
 
                 var normalizedUsername = request.Username.Trim();
 
-                // Provjera da li korisničko ime već postoji
-                var existingUser = users.FirstOrDefault(u =>
-                    u.Username.Equals(normalizedUsername, StringComparison.OrdinalIgnoreCase));
-
-                if (existingUser != null)
-                {
+                var exists = _context.Users.Any(u => u.Username == normalizedUsername);
+                if (exists)
                     return Conflict("Korisničko ime je već zauzeto. Odaberite drugo korisničko ime.");
-                }
 
-                // Odredi novi ID
-                var newId = users.Any() ? users.Max(u => u.Id) + 1 : 1;
-
-                // Samoregistrirani korisnici -> rola "Student"
                 var newUser = new User
                 {
-                    Id = newId,
                     Username = normalizedUsername,
-                    Password = request.Password,  // napomena: za produkciju koristiti hash
+                    Password = request.Password, 
                     Role = "Student"
                 };
 
-                users.Add(newUser);
+                _context.Users.Add(newUser);
+                _context.SaveChanges();
 
-                _logger.LogInformation("Novi korisnik registriran: {Username} sa ID-em {UserId}.",
-                    newUser.Username, newUser.Id);
-
-                // Nema auto-login: samo vratimo 201 Created + osnovne info
                 return StatusCode(StatusCodes.Status201Created, new
                 {
                     Message = "Korisnik je uspješno registriran.",
@@ -206,12 +154,8 @@ namespace InternshipPortal.API.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Neočekivana greška prilikom registracije korisnika {Username}.",
-                    request?.Username);
-
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    "Dogodila se greška prilikom registracije.");
+                _logger.LogError(ex, "Neočekivana greška prilikom registracije korisnika {Username}.", request?.Username);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Dogodila se greška prilikom registracije.");
             }
         }
     }
