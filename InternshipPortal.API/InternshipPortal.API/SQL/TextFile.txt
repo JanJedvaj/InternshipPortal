@@ -1,0 +1,169 @@
+﻿
+-- kReiranje DATABASE
+
+IF DB_ID('InternshipPortal') IS NULL
+    CREATE DATABASE InternshipPortal;
+GO
+
+USE InternshipPortal;
+GO
+
+------------------------------------------------------------
+------tablice
+------------------------------------------------------------
+
+--  Kategorije
+CREATE TABLE dbo.Categories (
+    Id      INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Name    NVARCHAR(100) NOT NULL
+);
+
+--  Kompanie
+CREATE TABLE dbo.Companies (
+    Id        INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Name      NVARCHAR(200) NOT NULL,
+    Website   NVARCHAR(200) NULL,
+    Location  NVARCHAR(100) NULL
+);
+
+--  Useri
+CREATE TABLE dbo.Users (
+    Id        INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Username  NVARCHAR(50) NOT NULL UNIQUE,
+    -- In produkciji ovdje ide hash, ali za sada može biti plain string
+    Password  NVARCHAR(255) NOT NULL,
+    Role      NVARCHAR(20) NOT NULL,
+    CONSTRAINT CHK_Users_Role CHECK (Role IN (N'Student', N'Company', N'Admin'))
+);
+
+--  Internships (Oglasi / Prakse)
+CREATE TABLE dbo.Internships (
+    Id               INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    Title            NVARCHAR(200) NOT NULL,
+    ShortDescription NVARCHAR(500) NOT NULL,
+    FullDescription  NVARCHAR(MAX) NOT NULL,
+    IsFeatured       BIT NOT NULL CONSTRAINT DF_Internships_IsFeatured DEFAULT (0),
+    Remote           BIT NOT NULL CONSTRAINT DF_Internships_Remote DEFAULT (0),
+    Location         NVARCHAR(100) NOT NULL,
+    PostedAt         DATETIME2(0) NOT NULL CONSTRAINT DF_Internships_PostedAt DEFAULT (SYSUTCDATETIME()),
+    Deadline         DATETIME2(0) NULL,
+    CompanyId        INT NOT NULL,
+    CategoryId       INT NOT NULL,
+    CONSTRAINT FK_Internships_Companies FOREIGN KEY (CompanyId) REFERENCES dbo.Companies(Id),
+    CONSTRAINT FK_Internships_Categories FOREIGN KEY (CategoryId) REFERENCES dbo.Categories(Id)
+);
+
+--  Applications (Prijave na oglase)
+-- (nije još u modelima, ali ti treba za dio "Prijave" iz WBS-a;
+--  kasnije možeš dodati C# model i controllere bez mijenjanja postojećeg koda)
+CREATE TABLE dbo.Applications (
+    Id           INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    InternshipId INT NOT NULL,
+    UserId       INT NOT NULL,      -- očekuje se Student user
+    CoverLetter  NVARCHAR(MAX) NULL,
+    CvUrl        NVARCHAR(500) NULL,
+    CreatedAt    DATETIME2(0) NOT NULL CONSTRAINT DF_Applications_CreatedAt DEFAULT (SYSUTCDATETIME()),
+    CONSTRAINT FK_Applications_Internships FOREIGN KEY (InternshipId) REFERENCES dbo.Internships(Id),
+    CONSTRAINT FK_Applications_Users       FOREIGN KEY (UserId)       REFERENCES dbo.Users(Id)
+);
+
+------------------------------------------------------------
+--INDEXES (za brže upite prema API-ju)
+------------------------------------------------------------
+CREATE INDEX IX_Internships_CategoryId ON dbo.Internships(CategoryId);
+CREATE INDEX IX_Internships_CompanyId  ON dbo.Internships(CompanyId);
+CREATE INDEX IX_Applications_InternshipId ON dbo.Applications(InternshipId);
+CREATE INDEX IX_Applications_UserId       ON dbo.Applications(UserId);
+
+------------------------------------------------------------
+-- SEED PODACI – isto kao u FakeDatabase.cs
+------------------------------------------------------------
+
+-- Kategorije
+SET IDENTITY_INSERT dbo.Categories ON;
+
+INSERT INTO dbo.Categories (Id, Name) VALUES
+(1, N'IT & Programiranje'),
+(2, N'Marketing'),
+(3, N'Dizajn'),
+(4, N'Financije');
+
+SET IDENTITY_INSERT dbo.Categories OFF;
+
+-- Kompanije
+SET IDENTITY_INSERT dbo.Companies ON;
+
+INSERT INTO dbo.Companies (Id, Name, Website, Location) VALUES
+(1, N'TechCorp',        N'https://techcorp.example',   N'Zagreb'),
+(2, N'Digital Agency',  N'https://digital.example',    N'Split'),
+(3, N'Creative Studio', N'https://creative.example',   N'Rijeka');
+
+SET IDENTITY_INSERT dbo.Companies OFF;
+
+-- Users  (student / company / admin)
+SET IDENTITY_INSERT dbo.Users ON;
+
+INSERT INTO dbo.Users (Id, Username, Password, Role) VALUES
+(1, N'student', N'student123', N'Student'),
+(2, N'company', N'company123', N'Company'),
+(3, N'admin',   N'admin123',   N'Admin');
+
+SET IDENTITY_INSERT dbo.Users OFF;
+
+-- Internships (prakse / oglasi)
+SET IDENTITY_INSERT dbo.Internships ON;
+
+INSERT INTO dbo.Internships
+    (Id, Title, ShortDescription, FullDescription,
+     IsFeatured, Remote, Location, PostedAt, Deadline,
+     CompanyId, CategoryId)
+VALUES
+(1,
+ N'Frontend Developer Praksa',
+ N'React + TypeScript praksa.',
+ N'Rad na modernim frontend tehnologijama.',
+ 1,         -- IsFeatured
+ 0,         -- Remote
+ N'Zagreb',
+ DATEADD(DAY, -3,  SYSUTCDATETIME()),  -- PostedAt
+ DATEADD(DAY,  30, SYSUTCDATETIME()),  -- Deadline
+ 1,  -- CompanyId (TechCorp)
+ 1   -- CategoryId (IT & Programiranje)
+),
+(2,
+ N'Marketing Stručnjak – Praksa',
+ N'Digital marketing praksa.',
+ N'SEO, content, social media…',
+ 1,         -- IsFeatured
+ 1,         -- Remote
+ N'Split',
+ DATEADD(DAY, -8,  SYSUTCDATETIME()),
+ DATEADD(DAY,  20, SYSUTCDATETIME()),
+ 2,  -- Digital Agency
+ 2   -- Marketing
+),
+(3,
+ N'UX/UI Dizajner Praksa',
+ N'Dizajn interakcija i prototipiranje.',
+ N'Rad u Figma-i, kreiranje prototipova.',
+ 0,         -- IsFeatured
+ 0,         -- Remote
+ N'Rijeka',
+ DATEADD(DAY, -2,  SYSUTCDATETIME()),
+ DATEADD(DAY,  40, SYSUTCDATETIME()),
+ 3,  -- Creative Studio
+ 3   -- Dizajn
+);
+
+SET IDENTITY_INSERT dbo.Internships OFF;
+
+------------------------------------------------------------
+
+------------------------------------------------------------
+ SELECT * FROM dbo.Categories;
+ SELECT * FROM dbo.Companies;
+ SELECT * FROM dbo.Users;
+ SELECT * FROM dbo.Internships;
+ SELECT * FROM dbo.Applications;
+
+
