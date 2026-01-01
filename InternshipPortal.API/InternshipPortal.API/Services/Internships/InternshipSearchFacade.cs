@@ -5,10 +5,7 @@ using System.Linq;
 
 namespace InternshipPortal.API.Services.Internships
 {
-    /// <summary>
-    /// Facade za pretragu/prikaz oglasa.
-    /// Sada koristi Strategy pattern za sortiranje.
-    /// </summary>
+ 
     public class InternshipSearchFacade : IInternshipSearchFacade
     {
         private readonly InternshipPortalContext _context;
@@ -20,7 +17,7 @@ namespace InternshipPortal.API.Services.Internships
         {
             _context = context;
 
-            // Kreiramo mapu strategija po imenu (date, deadline, title)
+            
             _sortingStrategies = sortingStrategies
                 .GroupBy(s => s.Name.ToLower())
                 .ToDictionary(g => g.Key, g => g.First());
@@ -36,7 +33,7 @@ namespace InternshipPortal.API.Services.Internships
 
             IQueryable<Internship> query = _context.Internships.AsNoTracking();
 
-            // ----- FILTRI -----
+           
             if (!string.IsNullOrWhiteSpace(criteria.Keyword))
             {
                 string keyword = criteria.Keyword.Trim().ToLower();
@@ -72,17 +69,17 @@ namespace InternshipPortal.API.Services.Internships
 
             int totalCount = query.Count();
 
-            // ----- STRATEGY: SORTIRANJE -----
+           
 
             bool desc = criteria.SortDescending;
             string sortKey = (criteria.SortBy ?? "date").ToLower();
 
             if (!_sortingStrategies.TryGetValue(sortKey, out var strategy))
             {
-                // Ako ne postoji strategija za zadani ključ, koristi "date" kao default
+               
                 if (!_sortingStrategies.TryGetValue("date", out strategy))
                 {
-                    // Fallback: ako nema ni "date" strategije, ne sortiramo dodatno
+                   
                     var unsortedItems = query
                         .Skip((criteria.Page - 1) * criteria.PageSize)
                         .Take(criteria.PageSize)

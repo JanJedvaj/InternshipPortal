@@ -3,10 +3,7 @@ using System.Linq;
 
 namespace InternshipPortal.API.Services.Internships
 {
-    /// <summary>
-    /// Sortiranje po datumu objave (PostedAt).
-    /// Name = "date"
-    /// </summary>
+ 
     public class PostedAtSortingStrategy : IInternshipSortingStrategy
     {
         public string Name => "date";

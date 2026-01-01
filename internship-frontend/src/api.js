@@ -36,6 +36,34 @@ export async function login(username, password) {
   return response.json();
 }
 
+export async function register(username, password, confirmPassword) {
+  const response = await fetch(`${API_BASE_URL}/api/Auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, password, confirmPassword }),
+  });
+
+  if (response.status === 400) {
+    const text = await response.text();
+    throw new Error(text || "Neispravno tijelo zahtjeva.");
+  }
+
+  if (response.status === 409) {
+    const text = await response.text();
+    throw new Error(text || "Korisničko ime je već zauzeto.");
+  }
+
+  if (!response.ok) {
+    throw new Error("Dogodila se greška prilikom registracije.");
+  }
+
+  // { message, userId, username, role }
+  return response.json();
+}
+
+
 // dohvaćanje kategorija
 export async function getCategories() {
   const response = await fetch(`${API_BASE_URL}/api/Categories`);

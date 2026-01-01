@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { login } from "../api";
+import { register, login } from "../api";
 
-export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
+export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -12,22 +13,32 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
     setError("");
     setLoading(true);
 
-    try {
-      const data = await login(username, password);
+    try { /////AKO je uspjesna registracija ide auto login
+      
+      await register(username, password, confirmPassword);
 
-      if (onLoginSuccess) {
-        onLoginSuccess(data);
+      
+      const loginResponse = await login(username, password);
+
+      if (onRegisterSuccess) {
+        onRegisterSuccess(loginResponse);
       }
     } catch (err) {
-      setError(err.message || "Dogodila se greška prilikom prijave.");
+      setError(err.message || "Dogodila se greška prilikom registracije.");
     } finally {
       setLoading(false);
     }
   }
 
+  function handleSwitchToLoginClick() {
+    if (onSwitchToLogin) {
+      onSwitchToLogin();
+    }
+  }
+
   return (
     <div className="form-card form-card--narrow">
-      <h2>Prijava</h2>
+      <h2>Registracija</h2>
 
       {error && (
         <p style={{ color: "red", marginBottom: "10px" }}>
@@ -72,6 +83,24 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
           </label>
         </div>
 
+        <div style={{ marginBottom: "18px", fontSize: "1.08rem" }}>
+          <label>
+            Potvrdi lozinku:
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "14px 14px",
+                marginTop: "8px",
+                fontSize: "1.05rem",
+              }}
+              required
+            />
+          </label>
+        </div>
+
         <button
           type="submit"
           disabled={loading}
@@ -83,7 +112,7 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
             cursor: loading ? "not-allowed" : "pointer",
           }}
         >
-          {loading ? "Prijava..." : "Prijavi se"}
+          {loading ? "Registracija..." : "Registriraj se"}
         </button>
 
         <div
@@ -93,10 +122,10 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
             fontSize: "0.95rem",
           }}
         >
-          Nemaš račun?{" "}
+          Već imaš račun?{" "}
           <button
             type="button"
-            onClick={() => onSwitchToRegister && onSwitchToRegister()}
+            onClick={handleSwitchToLoginClick}
             style={{
               background: "none",
               border: "none",
@@ -105,7 +134,7 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
               padding: 0,
             }}
           >
-            Registriraj se
+            Prijavi se
           </button>
         </div>
       </form>

@@ -3,10 +3,7 @@ using InternshipPortal.API.Exceptions;
 
 namespace InternshipPortal.API.Services.Internships
 {
-    /// <summary>
-    /// Default implementation of the Internship factory.
-    /// Central place for creation + validation rules for Internship.
-    /// </summary>
+
     public class DefaultInternshipFactory : IInternshipFactory
     {
         public Internship CreateNew(Internship internship)
@@ -18,10 +15,10 @@ namespace InternshipPortal.API.Services.Internships
 
             Validate(internship);
 
-            // Kreiramo potpuno novu entitet instancu – ne koristimo Id iz requesta
+            
             var entity = new Internship
             {
-                // Id = 0  -> EF će ga postaviti
+                // Id = 0  - EF Ga postavjla 
                 Title = internship.Title.Trim(),
                 ShortDescription = internship.ShortDescription.Trim(),
                 FullDescription = internship.FullDescription.Trim(),
@@ -51,10 +48,10 @@ namespace InternshipPortal.API.Services.Internships
                 throw new ValidationException("Tijelo zahtjeva je prazno.");
             }
 
-            // Validiramo nove vrijednosti
+           
             Validate(updates);
 
-            // Id se ne mijenja – kontrolira ga baza
+           
             existing.Title = updates.Title.Trim();
             existing.ShortDescription = updates.ShortDescription.Trim();
             existing.FullDescription = updates.FullDescription.Trim();
@@ -62,8 +59,7 @@ namespace InternshipPortal.API.Services.Internships
             existing.Remote = updates.Remote;
             existing.Location = (updates.Location ?? string.Empty).Trim();
 
-            // Tipično PostedAt ostaje onaj originalni – oglas je objavljen tog dana.
-            // Ako želiš dopustiti promjenu, ovdje možeš staviti existing.PostedAt = updates.PostedAt;
+            
             if (existing.PostedAt == default)
             {
                 existing.PostedAt = updates.PostedAt == default
@@ -78,9 +74,7 @@ namespace InternshipPortal.API.Services.Internships
             return existing;
         }
 
-        /// <summary>
-        /// Centralno mjesto za osnovnu business validaciju Internship entiteta.
-        /// </summary>
+    
         private static void Validate(Internship internship)
         {
             if (string.IsNullOrWhiteSpace(internship.Title))
