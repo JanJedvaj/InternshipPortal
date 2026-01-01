@@ -2,6 +2,7 @@
 using InternshipPortal.API.Services.Internships;
 using InternshipPortal.API.Data.EF;
 using Microsoft.AspNetCore.Mvc;
+using InternshipPortal.BL.DTOi.Internships;
 
 namespace InternshipPortal.API.Controllers
 {
@@ -21,7 +22,29 @@ namespace InternshipPortal.API.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            try { return Ok(_service.GetAll()); }
+            try
+            {
+                var items = _service.GetAll()
+                    .Select(i => new InternshipResponseDTO
+                    {
+                        Id = i.Id,
+                        Title = i.Title,
+                        ShortDescription = i.ShortDescription,
+                        FullDescription = i.FullDescription,
+                        IsFeatured = i.IsFeatured,
+                        Remote = i.Remote,
+                        Location = i.Location,
+                        PostedAt = i.PostedAt,
+                        Deadline = i.Deadline,
+                        CompanyId = i.CompanyId,
+                        CategoryId = i.CategoryId,
+                        CompanyName = (i.Company != null ? i.Company.Name : string.Empty),
+                        CategoryName = (i.Category != null ? i.Category.Name : string.Empty)
+                    })
+                    .ToList();
+
+                return Ok(items);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška GetAll internships.");
@@ -29,10 +52,33 @@ namespace InternshipPortal.API.Controllers
             }
         }
 
+
         [HttpGet("{id:int}")]
         public IActionResult Get(int id)
         {
-            try { return Ok(_service.GetById(id)); }
+            try
+            {
+                var i = _service.GetById(id);
+
+                var dto = new InternshipResponseDTO
+                {
+                    Id = i.Id,
+                    Title = i.Title,
+                    ShortDescription = i.ShortDescription,
+                    FullDescription = i.FullDescription,
+                    IsFeatured = i.IsFeatured,
+                    Remote = i.Remote,
+                    Location = i.Location,
+                    PostedAt = i.PostedAt,
+                    Deadline = i.Deadline,
+                    CompanyId = i.CompanyId,
+                    CategoryId = i.CategoryId,
+                    CompanyName = (i.Company != null ? i.Company.Name : string.Empty),
+                    CategoryName = (i.Category != null ? i.Category.Name : string.Empty)
+                };
+
+                return Ok(dto);
+            }
             catch (ValidationException ex) { return BadRequest(ex.Message); }
             catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
@@ -42,11 +88,26 @@ namespace InternshipPortal.API.Controllers
             }
         }
 
+
         [HttpPost]
-        public IActionResult Create([FromBody] Internship internship)
+        public IActionResult Create([FromBody] InternshipRequestDTO request)
         {
             try
             {
+                var internship = new Internship
+                {
+                    Title = request.Title,
+                    ShortDescription = request.ShortDescription,
+                    FullDescription = request.FullDescription,
+                    IsFeatured = request.IsFeatured,
+                    Remote = request.Remote,
+                    Location = request.Location,
+                    Deadline = request.Deadline,
+                    CompanyId = request.CompanyId,
+                    CategoryId = request.CategoryId,
+                    PostedAt = DateTime.UtcNow
+                };
+
                 var created = _service.Create(internship);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
@@ -58,10 +119,28 @@ namespace InternshipPortal.API.Controllers
             }
         }
 
+
         [HttpPut("{id:int}")]
-        public IActionResult Update(int id, [FromBody] Internship internship)
+        public IActionResult Update(int id, [FromBody] InternshipRequestDTO request)
         {
-            try { return Ok(_service.Update(id, internship)); }
+            try
+            {
+                var internship = new Internship
+                {
+                    Id = id,
+                    Title = request.Title,
+                    ShortDescription = request.ShortDescription,
+                    FullDescription = request.FullDescription,
+                    IsFeatured = request.IsFeatured,
+                    Remote = request.Remote,
+                    Location = request.Location,
+                    Deadline = request.Deadline,
+                    CompanyId = request.CompanyId,
+                    CategoryId = request.CategoryId
+                };
+
+                return Ok(_service.Update(id, internship));
+            }
             catch (ValidationException ex) { return BadRequest(ex.Message); }
             catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
@@ -70,6 +149,7 @@ namespace InternshipPortal.API.Controllers
                 return StatusCode(500, "Dogodila se greška.");
             }
         }
+
 
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)

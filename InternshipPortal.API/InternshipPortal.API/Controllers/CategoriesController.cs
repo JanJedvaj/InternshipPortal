@@ -2,6 +2,7 @@
 using InternshipPortal.API.Services.Categories;
 using InternshipPortal.API.Data.EF;
 using Microsoft.AspNetCore.Mvc;
+using InternshipPortal.BL.DTOi.Categories;
 
 namespace InternshipPortal.API.Controllers
 {
@@ -43,10 +44,15 @@ namespace InternshipPortal.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] Category category)
+        public IActionResult Create([FromBody] CategoryRequestDTO dto)
         {
             try
             {
+                var category = new Category
+                {
+                    Name = dto.Name
+                };
+
                 var created = _service.Create(category);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
@@ -58,10 +64,20 @@ namespace InternshipPortal.API.Controllers
             }
         }
 
+
         [HttpPut("{id:int}")]
-        public IActionResult Update(int id, [FromBody] Category category)
+        public IActionResult Update(int id, [FromBody] CategoryRequestDTO dto)
         {
-            try { return Ok(_service.Update(id, category)); }
+            try
+            {
+                var category = new Category
+                {
+                    Id = id,
+                    Name = dto.Name
+                };
+
+                return Ok(_service.Update(id, category));
+            }
             catch (ValidationException ex) { return BadRequest(ex.Message); }
             catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
@@ -70,6 +86,7 @@ namespace InternshipPortal.API.Controllers
                 return StatusCode(500, "Dogodila se greška.");
             }
         }
+
 
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
