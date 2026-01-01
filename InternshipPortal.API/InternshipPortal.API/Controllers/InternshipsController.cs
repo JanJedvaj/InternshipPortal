@@ -13,11 +13,19 @@ namespace InternshipPortal.API.Controllers
         private readonly IInternshipService _service;
         private readonly ILogger<InternshipsController> _logger;
 
-        public InternshipsController(IInternshipService service, ILogger<InternshipsController> logger)
+        private readonly IInternshipSearchFacade _searchFacade;
+
+        //Updejtan konstruktor za fasadu (injectamo fasadu)
+        public InternshipsController(
+       IInternshipService service,
+       IInternshipSearchFacade searchFacade,
+       ILogger<InternshipsController> logger)
         {
             _service = service;
+            _searchFacade = searchFacade;
             _logger = logger;
         }
+
 
         [HttpGet]
         public IActionResult GetAll()
@@ -167,5 +175,22 @@ namespace InternshipPortal.API.Controllers
                 return StatusCode(500, "Dogodila se greška.");
             }
         }
+
+        [HttpGet("search")]
+        [ProducesResponseType(typeof(InternshipSearchResult), StatusCodes.Status200OK)]
+        public IActionResult Search([FromQuery] InternshipSearchCriteria criteria)
+        {
+            try
+            {
+                var result = _searchFacade.Search(criteria);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Greška prilikom pretrage oglasa (internship search).");
+                return StatusCode(500, "Dogodila se greška.");
+            }
+        }
+
     }
 }
