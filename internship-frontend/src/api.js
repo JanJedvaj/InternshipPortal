@@ -120,3 +120,36 @@ export async function deleteInternship(id) {
 
   return true;
 }
+
+export async function searchInternships(criteria = {}) {
+  const params = new URLSearchParams();
+
+  if (criteria.keyword) params.append("keyword", criteria.keyword);
+  if (criteria.categoryId) params.append("categoryId", criteria.categoryId);
+  if (criteria.companyId) params.append("companyId", criteria.companyId);
+  if (criteria.remote !== undefined && criteria.remote !== null) {
+    params.append("remote", criteria.remote);
+  }
+  if (criteria.location) params.append("location", criteria.location);
+  if (criteria.onlyActive !== undefined && criteria.onlyActive !== null) {
+    params.append("onlyActive", criteria.onlyActive);
+  }
+  if (criteria.sortBy) params.append("sortBy", criteria.sortBy);
+  if (criteria.sortDescending !== undefined && criteria.sortDescending !== null) {
+    params.append("sortDescending", criteria.sortDescending);
+  }
+  if (criteria.page) params.append("page", criteria.page);
+  if (criteria.pageSize) params.append("pageSize", criteria.pageSize);
+
+  const query = params.toString();
+  const url = `${API_BASE_URL}/api/Internships/search${query ? `?${query}` : ""}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Greška prilikom pretrage oglasa.");
+  }
+
+  return response.json();
+}
+
