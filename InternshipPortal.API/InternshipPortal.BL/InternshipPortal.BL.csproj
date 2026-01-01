@@ -42,10 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="DTOi\Categories\CategoryRequestDTO.cs" />
+    <Compile Include="DTOi\Companies\CompanyRequestDTO.cs" />
+    <Compile Include="DTOi\Internships\InternshipRequestDTO.cs" />
+    <Compile Include="DTOi\Internships\InternshipResponseDTO.cs" />
     <Compile Include="DTOi\LoginDTO.cs" />
     <Compile Include="DTOi\RegisterDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
