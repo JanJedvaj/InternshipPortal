@@ -110,7 +110,18 @@ builder.Services.AddScoped<IInternshipRepository, InternshipRepository>();
 //dependency injection - services (feature-based)
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
+// NEW: Factory for Internship (Creational pattern)
+builder.Services.AddScoped<IInternshipFactory, DefaultInternshipFactory>();
 builder.Services.AddScoped<IInternshipService, InternshipService>();
+
+
+// NEW: Facade for internship search/filter/sort
+builder.Services.AddScoped<IInternshipSearchFacade, InternshipSearchFacade>();
+
+// STRATEGY implementations for sorting
+builder.Services.AddScoped<IInternshipSortingStrategy, PostedAtSortingStrategy>();
+builder.Services.AddScoped<IInternshipSortingStrategy, DeadlineSortingStrategy>();
+builder.Services.AddScoped<IInternshipSortingStrategy, TitleSortingStrategy>();
 
 var app = builder.Build();
 
