@@ -3,10 +3,7 @@ using System.Linq;
 
 namespace InternshipPortal.API.Services.Internships
 {
-    /// <summary>
-    /// Sortiranje po naslovu oglasa (Title).
-    /// Name = "title"
-    /// </summary>
+   
     public class TitleSortingStrategy : IInternshipSortingStrategy
     {
         public string Name => "title";

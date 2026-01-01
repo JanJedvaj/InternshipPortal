@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import LoginForm from "./components/LoginForm";
+import RegisterForm from "./components/RegisterForm";
 import InternshipList from "./components/InternshipList";
 import AddInternshipForm from "./components/AddInternshipForm";
 
@@ -11,6 +12,8 @@ function App() {
   });
 
   const [reloadId, setReloadId] = useState(0); 
+  const [showRegister, setShowRegister] = useState(false);
+
 
   function handleLoginSuccess(data) {
     const authData = {
@@ -66,10 +69,21 @@ function App() {
             : { padding: "0 16px 32px" }
         }
       >
-        {!isLoggedIn ? (
-          <LoginForm onLoginSuccess={handleLoginSuccess} />
+               {!isLoggedIn ? (
+          showRegister ? (
+            <RegisterForm
+              onRegisterSuccess={handleLoginSuccess}
+              onSwitchToLogin={() => setShowRegister(false)}
+            />
+          ) : (
+            <LoginForm
+              onLoginSuccess={handleLoginSuccess}
+              onSwitchToRegister={() => setShowRegister(true)}
+            />
+          )
         ) : (
           <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+
             <div
               style={{
                 display: "flex",

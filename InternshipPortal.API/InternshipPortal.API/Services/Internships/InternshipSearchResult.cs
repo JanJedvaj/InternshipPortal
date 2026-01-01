@@ -2,9 +2,7 @@
 
 namespace InternshipPortal.API.Services.Internships
 {
-    /// <summary>
-    /// Rezultat pretrage – lista oglasa + metapodaci za paging.
-    /// </summary>
+    
     public class InternshipSearchResult
     {
         public IReadOnlyCollection<Internship> Items { get; init; } = Array.Empty<Internship>();
