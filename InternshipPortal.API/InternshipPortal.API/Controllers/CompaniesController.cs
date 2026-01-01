@@ -2,6 +2,7 @@
 using InternshipPortal.API.Services.Companies;
 using InternshipPortal.API.Data.EF;
 using Microsoft.AspNetCore.Mvc;
+using InternshipPortal.BL.DTOi.Companies;
 
 namespace InternshipPortal.API.Controllers
 {
@@ -43,10 +44,17 @@ namespace InternshipPortal.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] Company company)
+        public IActionResult Create([FromBody] CompanyRequestDTO dto)
         {
             try
             {
+                var company = new Company
+                {
+                    Name = dto.Name,
+                    Website = dto.Website,
+                    Location = dto.Location
+                };
+
                 var created = _service.Create(company);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
@@ -58,10 +66,22 @@ namespace InternshipPortal.API.Controllers
             }
         }
 
+
         [HttpPut("{id:int}")]
-        public IActionResult Update(int id, [FromBody] Company company)
+        public IActionResult Update(int id, [FromBody] CompanyRequestDTO dto)
         {
-            try { return Ok(_service.Update(id, company)); }
+            try
+            {
+                var company = new Company
+                {
+                    Id = id,
+                    Name = dto.Name,
+                    Website = dto.Website,
+                    Location = dto.Location
+                };
+
+                return Ok(_service.Update(id, company));
+            }
             catch (ValidationException ex) { return BadRequest(ex.Message); }
             catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
@@ -70,6 +90,7 @@ namespace InternshipPortal.API.Controllers
                 return StatusCode(500, "Dogodila se greška.");
             }
         }
+
 
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
