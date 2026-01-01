@@ -118,6 +118,17 @@ builder.Services.AddScoped<IInternshipService, InternshipService>();
 // NEW: Facade for internship search/filter/sort
 builder.Services.AddScoped<IInternshipSearchFacade, InternshipSearchFacade>();
 
+// CATEGORIES: Strategy + Factory + Facade =====
+builder.Services.AddScoped<ICategoryNameStrategy, DefaultCategoryNameStrategy>();
+builder.Services.AddScoped<ICategoryFactory, DefaultCategoryFactory>();
+builder.Services.AddScoped<ICategoryFacade, CategoryFacade>();
+
+// ===== CATEGORIES SORT (Strategy) =====
+builder.Services.AddScoped<ICategorySortingStrategy, MostUsedCategorySortingStrategy>();
+builder.Services.AddScoped<CategorySortingStrategyResolver>();
+
+
+
 // STRATEGY implementations for sorting
 builder.Services.AddScoped<IInternshipSortingStrategy, PostedAtSortingStrategy>();
 builder.Services.AddScoped<IInternshipSortingStrategy, DeadlineSortingStrategy>();

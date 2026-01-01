@@ -1,8 +1,6 @@
 ﻿using InternshipPortal.API.Exceptions;
 using InternshipPortal.API.Services.Categories;
-using InternshipPortal.API.Data.EF;
 using Microsoft.AspNetCore.Mvc;
-using InternshipPortal.BL.DTOi.Categories;
 
 namespace InternshipPortal.API.Controllers
 {
@@ -11,18 +9,40 @@ namespace InternshipPortal.API.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _service;
+        private readonly ICategoryFacade _facade;
+        private readonly CategorySortingStrategyResolver _sortResolver;
         private readonly ILogger<CategoriesController> _logger;
 
-        public CategoriesController(ICategoryService service, ILogger<CategoriesController> logger)
+        public CategoriesController(
+            ICategoryService service,
+            ICategoryFacade facade,
+            CategorySortingStrategyResolver sortResolver,
+            ILogger<CategoriesController> logger)
         {
             _service = service;
+            _facade = facade;
+            _sortResolver = sortResolver;
             _logger = logger;
         }
 
+        // GET: /api/Categories
+        // GET: /api/Categories?sort=mostUsed
         [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult GetAll([FromQuery] string sort = null)
         {
-            try { return Ok(_service.GetAll()); }
+            try
+            {
+                var categories = _service.GetAll();
+
+                // Ako je tražen sort - koristi Strategy
+                if (!string.IsNullOrWhiteSpace(sort))
+                {
+                    var strategy = _sortResolver.Resolve(sort);
+                    categories = strategy.Sort(categories);
+                }
+
+                return Ok(categories);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška GetAll categories.");
@@ -33,7 +53,10 @@ namespace InternshipPortal.API.Controllers
         [HttpGet("{id:int}")]
         public IActionResult Get(int id)
         {
-            try { return Ok(_service.GetById(id)); }
+            try
+            {
+                return Ok(_service.GetById(id));
+            }
             catch (ValidationException ex) { return BadRequest(ex.Message); }
             catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
@@ -44,15 +67,10 @@ namespace InternshipPortal.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] CategoryRequestDTO dto)
+        public IActionResult Create([FromBody] InternshipPortal.API.Data.EF.Category category)
         {
             try
             {
-                var category = new Category
-                {
-                    Name = dto.Name
-                };
-
                 var created = _service.Create(category);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
@@ -64,18 +82,11 @@ namespace InternshipPortal.API.Controllers
             }
         }
 
-
         [HttpPut("{id:int}")]
-        public IActionResult Update(int id, [FromBody] CategoryRequestDTO dto)
+        public IActionResult Update(int id, [FromBody] InternshipPortal.API.Data.EF.Category category)
         {
             try
             {
-                var category = new Category
-                {
-                    Id = id,
-                    Name = dto.Name
-                };
-
                 return Ok(_service.Update(id, category));
             }
             catch (ValidationException ex) { return BadRequest(ex.Message); }
@@ -87,13 +98,12 @@ namespace InternshipPortal.API.Controllers
             }
         }
 
-
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
         {
             try
             {
-                _service.Delete(id);
+                _facade.DeleteCategorySafely(id);
                 return NoContent();
             }
             catch (ValidationException ex) { return BadRequest(ex.Message); }
