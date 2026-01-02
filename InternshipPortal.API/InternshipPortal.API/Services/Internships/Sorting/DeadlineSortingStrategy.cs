@@ -1,7 +1,7 @@
 ﻿using InternshipPortal.API.Data.EF;
 using System.Linq;
 
-namespace InternshipPortal.API.Services.Internships
+namespace InternshipPortal.API.Services.Internships.Sorting
 {
 
     public class DeadlineSortingStrategy : IInternshipSortingStrategy

@@ -1,6 +1,7 @@
 ﻿using InternshipPortal.API.Data.EF;
 using InternshipPortal.API.Exceptions;
 using InternshipPortal.API.Repositories.Internships;
+using InternshipPortal.API.Services.Internships.Factories;
 
 
 namespace InternshipPortal.API.Services.Internships

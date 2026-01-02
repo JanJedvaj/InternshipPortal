@@ -3,6 +3,7 @@ using InternshipPortal.API.Services.Internships;
 using InternshipPortal.API.Data.EF;
 using Microsoft.AspNetCore.Mvc;
 using InternshipPortal.BL.DTOi.Internships;
+using InternshipPortal.API.Services.Internships.Search;
 
 namespace InternshipPortal.API.Controllers
 {

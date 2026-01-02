@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using InternshipPortal.API.Services.Internships.Factories;
+using InternshipPortal.API.Services.Internships.Search;
+using InternshipPortal.API.Services.Internships.Sorting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,7 +95,7 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -101,35 +104,33 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-//dependency injection - repositories (feature-based)
+
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IInternshipRepository, InternshipRepository>();
 
 
-//dependency injection - services (feature-based)
+
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
-// NEW: Factory for Internship (Creational pattern)
+
 builder.Services.AddScoped<IInternshipFactory, DefaultInternshipFactory>();
 builder.Services.AddScoped<IInternshipService, InternshipService>();
 
 
-// NEW: Facade for internship search/filter/sort
 builder.Services.AddScoped<IInternshipSearchFacade, InternshipSearchFacade>();
 
-// CATEGORIES: Strategy + Factory + Facade =====
+
 builder.Services.AddScoped<ICategoryNameStrategy, DefaultCategoryNameStrategy>();
 builder.Services.AddScoped<ICategoryFactory, DefaultCategoryFactory>();
 builder.Services.AddScoped<ICategoryFacade, CategoryFacade>();
 
-// ===== CATEGORIES SORT (Strategy) =====
+
 builder.Services.AddScoped<ICategorySortingStrategy, MostUsedCategorySortingStrategy>();
 builder.Services.AddScoped<CategorySortingStrategyResolver>();
 
 
 
-// STRATEGY implementations for sorting
 builder.Services.AddScoped<IInternshipSortingStrategy, PostedAtSortingStrategy>();
 builder.Services.AddScoped<IInternshipSortingStrategy, DeadlineSortingStrategy>();
 builder.Services.AddScoped<IInternshipSortingStrategy, TitleSortingStrategy>();
