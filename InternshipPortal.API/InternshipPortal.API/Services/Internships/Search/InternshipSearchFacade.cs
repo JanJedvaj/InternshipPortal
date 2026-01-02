@@ -1,11 +1,12 @@
 ﻿using InternshipPortal.API.Data.EF;
+using InternshipPortal.API.Services.Internships.Sorting;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace InternshipPortal.API.Services.Internships
+namespace InternshipPortal.API.Services.Internships.Search
 {
- 
+
     public class InternshipSearchFacade : IInternshipSearchFacade
     {
         private readonly InternshipPortalContext _context;
@@ -17,7 +18,7 @@ namespace InternshipPortal.API.Services.Internships
         {
             _context = context;
 
-            
+
             _sortingStrategies = sortingStrategies
                 .GroupBy(s => s.Name.ToLower())
                 .ToDictionary(g => g.Key, g => g.First());
@@ -33,15 +34,15 @@ namespace InternshipPortal.API.Services.Internships
 
             IQueryable<Internship> query = _context.Internships.AsNoTracking();
 
-           
+
             if (!string.IsNullOrWhiteSpace(criteria.Keyword))
             {
                 string keyword = criteria.Keyword.Trim().ToLower();
 
                 query = query.Where(i =>
-                    (i.Title != null && i.Title.ToLower().Contains(keyword)) ||
-                    (i.ShortDescription != null && i.ShortDescription.ToLower().Contains(keyword)) ||
-                    (i.FullDescription != null && i.FullDescription.ToLower().Contains(keyword))
+                    i.Title != null && i.Title.ToLower().Contains(keyword) ||
+                    i.ShortDescription != null && i.ShortDescription.ToLower().Contains(keyword) ||
+                    i.FullDescription != null && i.FullDescription.ToLower().Contains(keyword)
                 );
             }
 
@@ -69,17 +70,17 @@ namespace InternshipPortal.API.Services.Internships
 
             int totalCount = query.Count();
 
-           
+
 
             bool desc = criteria.SortDescending;
             string sortKey = (criteria.SortBy ?? "date").ToLower();
 
             if (!_sortingStrategies.TryGetValue(sortKey, out var strategy))
             {
-               
+
                 if (!_sortingStrategies.TryGetValue("date", out strategy))
                 {
-                   
+
                     var unsortedItems = query
                         .Skip((criteria.Page - 1) * criteria.PageSize)
                         .Take(criteria.PageSize)

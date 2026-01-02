@@ -1,8 +1,8 @@
 ﻿using InternshipPortal.API.Data.EF;
 
-namespace InternshipPortal.API.Services.Internships
+namespace InternshipPortal.API.Services.Internships.Search
 {
-    
+
     public class InternshipSearchResult
     {
         public IReadOnlyCollection<Internship> Items { get; init; } = Array.Empty<Internship>();

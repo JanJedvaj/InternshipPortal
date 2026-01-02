@@ -1,7 +1,7 @@
 ﻿using InternshipPortal.API.Data.EF;
 using InternshipPortal.API.Exceptions;
 
-namespace InternshipPortal.API.Services.Internships
+namespace InternshipPortal.API.Services.Internships.Factories
 {
 
     public class DefaultInternshipFactory : IInternshipFactory
@@ -15,7 +15,7 @@ namespace InternshipPortal.API.Services.Internships
 
             Validate(internship);
 
-            
+
             var entity = new Internship
             {
                 // Id = 0  - EF Ga postavjla 
@@ -48,10 +48,10 @@ namespace InternshipPortal.API.Services.Internships
                 throw new ValidationException("Tijelo zahtjeva je prazno.");
             }
 
-           
+
             Validate(updates);
 
-           
+
             existing.Title = updates.Title.Trim();
             existing.ShortDescription = updates.ShortDescription.Trim();
             existing.FullDescription = updates.FullDescription.Trim();
@@ -59,7 +59,7 @@ namespace InternshipPortal.API.Services.Internships
             existing.Remote = updates.Remote;
             existing.Location = (updates.Location ?? string.Empty).Trim();
 
-            
+
             if (existing.PostedAt == default)
             {
                 existing.PostedAt = updates.PostedAt == default
@@ -74,7 +74,7 @@ namespace InternshipPortal.API.Services.Internships
             return existing;
         }
 
-    
+
         private static void Validate(Internship internship)
         {
             if (string.IsNullOrWhiteSpace(internship.Title))
