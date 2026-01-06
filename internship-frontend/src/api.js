@@ -1,4 +1,5 @@
-const API_BASE_URL = "https://localhost:7027";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:7027";
+
 
 export async function getInternships() {
   const response = await fetch(`${API_BASE_URL}/api/Internships`);
