@@ -16,21 +16,14 @@ public partial class InternshipPortalContext : DbContext
     }
 
     public virtual DbSet<Application> Applications { get; set; }
-
     public virtual DbSet<Category> Categories { get; set; }
-
     public virtual DbSet<Company> Companies { get; set; }
-
     public virtual DbSet<Internship> Internships { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (!optionsBuilder.IsConfigured)
-            optionsBuilder.UseSqlServer("Name=DefaultConnection");
-    }
-
+    // IMPORTANT:
+    // Removed OnConfiguring() to avoid hard-coding SQL Server.
+    // The provider must be configured via DI in Program.cs (UseNpgsql).
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,7 +31,10 @@ public partial class InternshipPortalContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Applicat__3214EC07AC8AEACA");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            // SQL Server: (sysutcdatetime())
+            // PostgreSQL equivalent (UTC):
+            entity.Property(e => e.CreatedAt)
+                  .HasDefaultValueSql("timezone('utc', now())");
 
             entity.HasOne(d => d.Internship).WithMany(p => p.Applications)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -63,7 +59,10 @@ public partial class InternshipPortalContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Internsh__3214EC07C5C66436");
 
-            entity.Property(e => e.PostedAt).HasDefaultValueSql("(sysutcdatetime())");
+            // SQL Server: (sysutcdatetime())
+            // PostgreSQL equivalent (UTC):
+            entity.Property(e => e.PostedAt)
+                  .HasDefaultValueSql("timezone('utc', now())");
 
             entity.HasOne(d => d.Category).WithMany(p => p.Internships)
                 .OnDelete(DeleteBehavior.ClientSetNull)

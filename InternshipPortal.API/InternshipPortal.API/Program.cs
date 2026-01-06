@@ -21,8 +21,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+/*  builder.Services.AddDbContext<InternshipPortalContext>(options =>
+    options.UseSqlServer(connectionString));   */ //Microsoft sql
+
 builder.Services.AddDbContext<InternshipPortalContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
+
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
@@ -38,6 +42,12 @@ var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+
+/*
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.Information);
+builder.Logging.AddFilter("Npgsql", LogLevel.Information);  */
+
 
 builder.Services.AddControllers();
 
@@ -137,6 +147,7 @@ builder.Services.AddScoped<IInternshipSortingStrategy, TitleSortingStrategy>();
 
 var app = builder.Build();
 
+/*
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -149,7 +160,7 @@ app.UseExceptionHandler(errorApp =>
             Error = "Dogodila se greška na serveru. Pogledaj logove za detalje."
         });
     });
-});
+});   */
 
 app.UseSwagger();
 app.UseSwaggerUI();
