@@ -147,7 +147,7 @@ builder.Services.AddScoped<IInternshipSortingStrategy, TitleSortingStrategy>();
 
 var app = builder.Build();
 
-/*
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -160,10 +160,20 @@ app.UseExceptionHandler(errorApp =>
             Error = "Dogodila se greška na serveru. Pogledaj logove za detalje."
         });
     });
-});   */
+});
+
+
+/*  app.UseSwagger();
+    app.UseSwaggerUI(); */
 
 app.UseSwagger();
-app.UseSwaggerUI();
+
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "InternshipPortal.API v1");
+    c.RoutePrefix = "swagger"; // forces /swagger
+});
+
 
 app.UseCors("AllowAll");
 
