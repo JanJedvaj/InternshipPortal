@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/TestResults/
+**/CoverageReport/
+**/*.trx
+**/coverage*.xml
+**/coverage*.json
+**/*.user
+**/*.suo
+**/.vs/
+.git/
+.gitignore
+README*

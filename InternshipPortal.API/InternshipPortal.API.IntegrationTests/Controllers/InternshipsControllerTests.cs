@@ -19,10 +19,10 @@ public class InternshipsControllerTests : IClassFixture<CustomWebApplicationFact
     [Fact]
     public async Task GetAll_Returns200_AndList()
     {
-        // Act
+        
         var response = await _client.GetAsync("/api/Internships");
 
-        // Assert
+       
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var items = await response.Content.ReadFromJsonAsync<List<InternshipResponseDTO>>();
@@ -33,10 +33,10 @@ public class InternshipsControllerTests : IClassFixture<CustomWebApplicationFact
     [Fact]
     public async Task GetById_WhenExists_Returns200()
     {
-        // Act
+        
         var response = await _client.GetAsync("/api/Internships/1");
 
-        // Assert
+        
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var dto = await response.Content.ReadFromJsonAsync<InternshipResponseDTO>();
@@ -47,17 +47,17 @@ public class InternshipsControllerTests : IClassFixture<CustomWebApplicationFact
     [Fact]
     public async Task GetById_WhenNotFound_Returns404()
     {
-        // Act
+        
         var response = await _client.GetAsync("/api/Internships/99999");
 
-        // Assert
+        
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task Create_WhenBodyInvalid_Returns400()
     {
-        // Arrange: namjerno krivo (npr. Title null)
+        
         var badRequest = new InternshipRequestDTO
         {
             Title = null!,
@@ -71,27 +71,27 @@ public class InternshipsControllerTests : IClassFixture<CustomWebApplicationFact
             Deadline = DateTime.UtcNow.Date.AddDays(3)
         };
 
-        // Act
+        
         var response = await _client.PostAsJsonAsync("/api/Internships", badRequest);
 
-        // Assert
+        
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Search_Returns200()
     {
-        // Act
+        
         var response = await _client.GetAsync("/api/Internships/search?keyword=backend&onlyActive=false");
 
-        // Assert
+        
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task Update_WhenExists_Returns200_AndUpdatesEntity()
     {
-        // Arrange (napravi update na seeded Id=1)
+        
         var updateRequest = new InternshipRequestDTO
         {
             Title = "Backend Developer UPDATED",
@@ -105,13 +105,13 @@ public class InternshipsControllerTests : IClassFixture<CustomWebApplicationFact
             Deadline = DateTime.UtcNow.Date.AddDays(20)
         };
 
-        // Act
+        
         var response = await _client.PutAsJsonAsync("/api/Internships/1", updateRequest);
 
-        // Assert
+       
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        // (Opcionalno) provjeri da GET vraća promjene
+        
         var get = await _client.GetAsync("/api/Internships/1");
         get.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -124,7 +124,7 @@ public class InternshipsControllerTests : IClassFixture<CustomWebApplicationFact
     [Fact]
     public async Task Delete_WhenExists_Returns204_AndThenGetReturns404()
     {
-        // Arrange: prvo kreiraj novi internship
+     
         var createRequest = new InternshipRequestDTO
         {
             Title = "To be deleted",
@@ -145,10 +145,10 @@ public class InternshipsControllerTests : IClassFixture<CustomWebApplicationFact
         created.Should().NotBeNull();
         var id = created!.Id;
 
-        // Act
+       
         var deleteResponse = await _client.DeleteAsync($"/api/Internships/{id}");
 
-        // Assert
+        
         deleteResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var getAfter = await _client.GetAsync($"/api/Internships/{id}");
