@@ -19,10 +19,10 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore ./InternshipPortal.API/InternshipPortal.API.sln
 
       - name: Build
-        run: dotnet build --no-restore -c Release
+        run: dotnet build ./InternshipPortal.API/InternshipPortal.API.sln --no-restore -c Release
 
       - name: Test
-        run: dotnet test --no-build -c Release --verbosity normal
+        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.sln --no-build -c Release --verbosity normal
