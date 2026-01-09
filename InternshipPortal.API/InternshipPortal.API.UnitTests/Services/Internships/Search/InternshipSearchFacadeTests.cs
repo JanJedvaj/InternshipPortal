@@ -23,7 +23,7 @@ public class InternshipSearchFacadeTests
         context.SaveChanges();
     }
 
-    // Helper: uvijek vraća EF-validan Internship (popunjena required polja)
+    
     private static Internship ValidInternship(
         int id,
         string title,
@@ -54,7 +54,7 @@ public class InternshipSearchFacadeTests
     [Fact]
     public void Search_WhenCriteriaIsNull_UsesDefaults_AndReturnsPagedItems()
     {
-        // Arrange
+        
         var dbName = Guid.NewGuid().ToString();
         using var context = CreateInMemoryContext(dbName);
 
@@ -66,17 +66,17 @@ public class InternshipSearchFacadeTests
 
         var strategies = new IInternshipSortingStrategy[]
         {
-            new PostedAtSortingStrategy(), // "date" default
+            new PostedAtSortingStrategy(), 
             new DeadlineSortingStrategy(),
             new TitleSortingStrategy()
         };
 
         var facade = new InternshipSearchFacade(context, strategies);
 
-        // Act
+        
         var result = facade.Search(criteria: null!);
 
-        // Assert
+        
         result.TotalCount.Should().Be(3);
         result.Page.Should().Be(1);
         result.PageSize.Should().Be(10);
@@ -86,7 +86,7 @@ public class InternshipSearchFacadeTests
     [Fact]
     public void Search_WhenPageOrPageSizeAreInvalid_NormalizesToDefaults()
     {
-        // Arrange
+        
         var dbName = Guid.NewGuid().ToString();
         using var context = CreateInMemoryContext(dbName);
 
@@ -100,17 +100,17 @@ public class InternshipSearchFacadeTests
 
         var criteria = new InternshipSearchCriteria
         {
-            Page = 0,       // invalid
-            PageSize = -10, // invalid
+            Page = 0,       
+            PageSize = -10, 
             SortBy = "date",
             SortDescending = true,
             OnlyActive = false
         };
 
-        // Act
+        
         var result = facade.Search(criteria);
 
-        // Assert
+      
         result.Page.Should().Be(1);
         result.PageSize.Should().Be(10);
         result.Items.Should().HaveCount(1);
@@ -119,7 +119,7 @@ public class InternshipSearchFacadeTests
     [Fact]
     public void Search_WhenKeywordProvided_FiltersByTitleOrDescriptions()
     {
-        // Arrange
+        
         var dbName = Guid.NewGuid().ToString();
         using var context = CreateInMemoryContext(dbName);
 
@@ -152,10 +152,10 @@ public class InternshipSearchFacadeTests
             OnlyActive = false
         };
 
-        // Act
+        
         var result = facade.Search(criteria);
 
-        // Assert
+        
         result.TotalCount.Should().Be(1);
         result.Items.Should().ContainSingle();
         result.Items.First().Id.Should().Be(1);
@@ -164,7 +164,7 @@ public class InternshipSearchFacadeTests
     [Fact]
     public void Search_WhenOnlyActiveTrue_FiltersOutExpiredDeadlines_ButKeepsNullDeadline()
     {
-        // Arrange
+        
         var today = DateTime.UtcNow.Date;
 
         var dbName = Guid.NewGuid().ToString();
@@ -187,10 +187,10 @@ public class InternshipSearchFacadeTests
             SortDescending = false
         };
 
-        // Act
+      
         var result = facade.Search(criteria);
 
-        // Assert
+        
         result.TotalCount.Should().Be(2);
         result.Items.Select(i => i.Id).Should().BeEquivalentTo(new[] { 2, 3 });
     }
@@ -198,7 +198,7 @@ public class InternshipSearchFacadeTests
     [Fact]
     public void Search_WhenSortKeyUnknown_FallsBackToDateStrategy_IfAvailable()
     {
-        // Arrange
+        
         var dbName = Guid.NewGuid().ToString();
         using var context = CreateInMemoryContext(dbName);
 
@@ -210,7 +210,7 @@ public class InternshipSearchFacadeTests
 
         var strategies = new IInternshipSortingStrategy[]
         {
-            new PostedAtSortingStrategy() // "date" exists
+            new PostedAtSortingStrategy() 
         };
 
         var facade = new InternshipSearchFacade(context, strategies);
@@ -222,21 +222,21 @@ public class InternshipSearchFacadeTests
             OnlyActive = false
         };
 
-        // Act
+        
         var result = facade.Search(criteria);
 
-        // Assert
+        
         result.Items.Select(i => i.Id).Should().ContainInOrder(2, 3, 1); // PostedAt desc
     }
 
     [Fact]
     public void Search_WhenSortKeyUnknown_AndDateStrategyMissing_UsesUnsortedBranch()
     {
-        // Arrange
+        
         var dbName = Guid.NewGuid().ToString();
         using var context = CreateInMemoryContext(dbName);
 
-        // Namjerno dodajemo u redoslijedu 1,2,3 i očekujemo da "unsorted branch" vrati taj redoslijed po Skip/Take
+       
         SeedInternships(context,
             ValidInternship(1, "First", new DateTime(2026, 1, 1)),
             ValidInternship(2, "Second", new DateTime(2026, 1, 2)),
@@ -245,7 +245,7 @@ public class InternshipSearchFacadeTests
 
         var strategies = new IInternshipSortingStrategy[]
         {
-            new DeadlineSortingStrategy() // nema "date"
+            new DeadlineSortingStrategy() 
         };
 
         var facade = new InternshipSearchFacade(context, strategies);
@@ -259,19 +259,19 @@ public class InternshipSearchFacadeTests
             PageSize = 2
         };
 
-        // Act
+       
         var result = facade.Search(criteria);
 
-        // Assert
+        
         result.TotalCount.Should().Be(3);
         result.Items.Should().HaveCount(2);
-        result.Items.Select(i => i.Id).Should().ContainInOrder(1, 2); // unsorted branch: Skip/Take bez Apply()
+        result.Items.Select(i => i.Id).Should().ContainInOrder(1, 2); 
     }
 
     [Fact]
     public void Search_WhenPagingApplied_ReturnsCorrectPageSlice()
     {
-        // Arrange
+        
         var dbName = Guid.NewGuid().ToString();
         using var context = CreateInMemoryContext(dbName);
 
@@ -295,10 +295,10 @@ public class InternshipSearchFacadeTests
             PageSize = 2
         };
 
-        // Act
+        
         var result = facade.Search(criteria);
 
-        // Assert
+        
         result.TotalCount.Should().Be(4);
         result.Page.Should().Be(2);
         result.PageSize.Should().Be(2);
