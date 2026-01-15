@@ -16,6 +16,8 @@ using System.Text;
 using InternshipPortal.API.Services.Internships.Factories;
 using InternshipPortal.API.Services.Internships.Search;
 using InternshipPortal.API.Services.Internships.Sorting;
+using Microsoft.Extensions.FileProviders;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +28,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 builder.Services.AddDbContext<InternshipPortalContext>(options =>
     options.UseNpgsql(connectionString));
-
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
@@ -47,7 +48,6 @@ builder.Logging.AddConsole();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.Information);
 builder.Logging.AddFilter("Npgsql", LogLevel.Information);  */
-
 
 builder.Services.AddControllers();
 
@@ -105,7 +105,6 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -114,12 +113,9 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<IInternshipRepository, InternshipRepository>();
-
-
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
@@ -127,26 +123,20 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IInternshipFactory, DefaultInternshipFactory>();
 builder.Services.AddScoped<IInternshipService, InternshipService>();
 
-
 builder.Services.AddScoped<IInternshipSearchFacade, InternshipSearchFacade>();
-
 
 builder.Services.AddScoped<ICategoryNameStrategy, DefaultCategoryNameStrategy>();
 builder.Services.AddScoped<ICategoryFactory, DefaultCategoryFactory>();
 builder.Services.AddScoped<ICategoryFacade, CategoryFacade>();
 
-
 builder.Services.AddScoped<ICategorySortingStrategy, MostUsedCategorySortingStrategy>();
 builder.Services.AddScoped<CategorySortingStrategyResolver>();
-
-
 
 builder.Services.AddScoped<IInternshipSortingStrategy, PostedAtSortingStrategy>();
 builder.Services.AddScoped<IInternshipSortingStrategy, DeadlineSortingStrategy>();
 builder.Services.AddScoped<IInternshipSortingStrategy, TitleSortingStrategy>();
 
 var app = builder.Build();
-
 
 app.UseExceptionHandler(errorApp =>
 {
@@ -162,18 +152,68 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Remove("Server");
+    context.Response.Headers.Remove("X-Powered-By");
+
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
+
+    // HSTS - da ZAP prestane prigovarati, možeš ga slati i na localhost dok skeniraš.
+    if (context.Request.IsHttps)
+    {
+        context.Response.Headers["Strict-Transport-Security"] =
+            "max-age=31536000; includeSubDomains";
+    }
+
+    if (context.Request.Path.StartsWithSegments("/swagger"))
+    {
+        // Dodano: form-action (no-fallback directive) + još par direktiva da ZAP ne javlja opet
+        context.Response.Headers["Content-Security-Policy"] =
+            "default-src 'self'; " +
+            "base-uri 'self'; " +
+            "object-src 'none'; " +
+            "frame-ancestors 'none'; " +
+            "img-src 'self' data:; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "script-src 'self' 'unsafe-inline'; " +
+            "connect-src 'self'; " +
+            "form-action 'self'; " +
+            "frame-src 'none'; " +
+            "manifest-src 'self'; " +
+            "worker-src 'self'; " +
+            "upgrade-insecure-requests;";
+    }
+    else
+    {
+        context.Response.Headers["Content-Security-Policy"] =
+            "default-src 'none'; " +
+            "frame-ancestors 'none'; " +
+            "base-uri 'none'; " +
+            "form-action 'none';";
+    }
+
+    await next();
+});
+
+
 
 /*  app.UseSwagger();
     app.UseSwaggerUI(); */
 
-app.UseSwagger();
-
-app.UseSwaggerUI(c =>
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "InternshipPortal.API v1");
-    c.RoutePrefix = "swagger"; // forces /swagger
-});
+    app.UseSwagger();
 
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "InternshipPortal.API v1");
+        c.RoutePrefix = "swagger"; // forces /swagger
+    });
+}
 
 app.UseCors("AllowAll");
 
