@@ -16,8 +16,6 @@ using System.Text;
 using InternshipPortal.API.Services.Internships.Factories;
 using InternshipPortal.API.Services.Internships.Search;
 using InternshipPortal.API.Services.Internships.Sorting;
-using Microsoft.Extensions.FileProviders;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -152,6 +150,7 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
+// Security headers middleware
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Remove("Server");
@@ -162,7 +161,6 @@ app.Use(async (context, next) =>
     context.Response.Headers["Referrer-Policy"] = "no-referrer";
     context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
 
-    // HSTS - da ZAP prestane prigovarati, možeš ga slati i na localhost dok skeniraš.
     if (context.Request.IsHttps)
     {
         context.Response.Headers["Strict-Transport-Security"] =
@@ -171,7 +169,6 @@ app.Use(async (context, next) =>
 
     if (context.Request.Path.StartsWithSegments("/swagger"))
     {
-        // Dodano: form-action (no-fallback directive) + još par direktiva da ZAP ne javlja opet
         context.Response.Headers["Content-Security-Policy"] =
             "default-src 'self'; " +
             "base-uri 'self'; " +
@@ -190,19 +187,23 @@ app.Use(async (context, next) =>
     else
     {
         context.Response.Headers["Content-Security-Policy"] =
-            "default-src 'none'; " +
+            "default-src 'self'; " +
+            "base-uri 'self'; " +
+            "object-src 'none'; " +
             "frame-ancestors 'none'; " +
-            "base-uri 'none'; " +
-            "form-action 'none';";
+            "img-src 'self' data:; " +
+            "style-src 'self' 'unsafe-inline'; " +
+            "script-src 'self' 'unsafe-inline'; " +
+            "connect-src 'self'; " +
+            "font-src 'self' data:; " +
+            "manifest-src 'self'; " +
+            "worker-src 'self'; " +
+            "form-action 'self'; " +
+            "upgrade-insecure-requests;";
     }
 
     await next();
 });
-
-
-
-/*  app.UseSwagger();
-    app.UseSwaggerUI(); */
 
 if (app.Environment.IsDevelopment())
 {
@@ -211,18 +212,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "InternshipPortal.API v1");
-        c.RoutePrefix = "swagger"; // forces /swagger
+        c.RoutePrefix = "swagger"; // /swagger
     });
 }
+
+app.UseHttpsRedirection();
+
+// Serviraj React build iz wwwroot
+app.UseDefaultFiles(); // automatski servira index.html
+app.UseStaticFiles();  // omogućuje /assets/* itd.
+
+app.UseRouting();
 
 app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/", () => Results.Redirect("/swagger"));
-
 app.MapControllers();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
