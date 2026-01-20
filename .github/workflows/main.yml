@@ -24,5 +24,8 @@ jobs:
       - name: Build
         run: dotnet build ./InternshipPortal.API/InternshipPortal.API.sln --no-restore -c Release
 
-      - name: Test
-        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.sln --no-build -c Release --verbosity normal
+      - name: Test - Unit
+        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.UnitTests/InternshipPortal.API.UnitTests.csproj --no-build -c Release --verbosity normal
+
+      - name: Test - Integration
+        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.IntegrationTests/InternshipPortal.API.IntegrationTests.csproj -c Release --verbosity normal
