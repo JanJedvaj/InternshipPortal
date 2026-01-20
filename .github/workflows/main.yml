@@ -25,4 +25,4 @@ jobs:
         run: dotnet build ./InternshipPortal.API/InternshipPortal.API.sln --no-restore -c Release
 
       - name: Test
-        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.sln --no-build -c Release --verbosity normal
+        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.sln -c Release --verbosity normal
