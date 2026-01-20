@@ -28,4 +28,5 @@ jobs:
         run: dotnet test ./InternshipPortal.API/InternshipPortal.API.UnitTests/InternshipPortal.API.UnitTests.csproj --no-build -c Release --verbosity normal
 
       - name: Test - Integration
-        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.IntegrationTests/InternshipPortal.API.IntegrationTests.csproj -c Release --verbosity normal
+        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.IntegrationTests/InternshipPortal.API.IntegrationTests.csproj --no-build -c Release --verbosity normal
+
