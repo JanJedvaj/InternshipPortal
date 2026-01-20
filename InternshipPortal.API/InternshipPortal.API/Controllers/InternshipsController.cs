@@ -29,6 +29,8 @@ namespace InternshipPortal.API.Controllers
 
 
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<InternshipResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAll()
         {
             try
@@ -63,6 +65,8 @@ namespace InternshipPortal.API.Controllers
 
 
         [HttpGet("{id:int}")]
+        [ProducesResponseType(typeof(IEnumerable<InternshipResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Get(int id)
         {
             try
@@ -99,6 +103,8 @@ namespace InternshipPortal.API.Controllers
 
 
         [HttpPost]
+        [ProducesResponseType(typeof(IEnumerable<InternshipResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Create([FromBody] InternshipRequestDTO request)
         {
             try
@@ -130,6 +136,8 @@ namespace InternshipPortal.API.Controllers
 
 
         [HttpPut("{id:int}")]
+        [ProducesResponseType(typeof(IEnumerable<InternshipResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Update(int id, [FromBody] InternshipRequestDTO request)
         {
             try

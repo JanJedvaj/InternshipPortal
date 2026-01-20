@@ -1,4 +1,5 @@
-﻿using InternshipPortal.API.Exceptions;
+﻿using InternshipPortal.API.Data.EF;
+using InternshipPortal.API.Exceptions;
 using InternshipPortal.API.Services.Categories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +29,9 @@ namespace InternshipPortal.API.Controllers
         // GET: /api/Categories
         // GET: /api/Categories?sort=mostUsed
         [HttpGet]
-        public IActionResult GetAll([FromQuery] string sort = null)
+        [ProducesResponseType(typeof(IEnumerable<Category>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetAll([FromQuery] string? sort = null)
         {
             try
             {
@@ -51,6 +54,10 @@ namespace InternshipPortal.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [ProducesResponseType(typeof(Category), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Get(int id)
         {
             try
@@ -67,6 +74,9 @@ namespace InternshipPortal.API.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(InternshipPortal.API.Data.EF.Category), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Create([FromBody] InternshipPortal.API.Data.EF.Category category)
         {
             try
@@ -83,6 +93,9 @@ namespace InternshipPortal.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [ProducesResponseType(typeof(InternshipPortal.API.Data.EF.Category), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Update(int id, [FromBody] InternshipPortal.API.Data.EF.Category category)
         {
             try
