@@ -21,8 +21,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-/*  builder.Services.AddDbContext<InternshipPortalContext>(options =>
-    options.UseSqlServer(connectionString));   */ //Microsoft sql
 
 builder.Services.AddDbContext<InternshipPortalContext>(options =>
     options.UseNpgsql(connectionString));
@@ -42,10 +40,7 @@ var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-/*
-builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information);
-builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Query", LogLevel.Information);
-builder.Logging.AddFilter("Npgsql", LogLevel.Information);  */
+
 
 builder.Services.AddControllers();
 
@@ -162,6 +157,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+
 app.UseHttpsRedirection();
 
 app.Use(async (context, next) =>
@@ -187,7 +183,7 @@ app.Use(async (context, next) =>
 });
 
 
-// Serviraj React build iz wwwroot
+// React build iz wwwroot
 app.UseDefaultFiles(); // automatski servira index.html
 app.UseStaticFiles();  // omogućuje /assets/* itd.
 
@@ -202,6 +198,5 @@ app.MapControllers();
 
 app.MapFallbackToFile("index.html");
 
-app.Run();
+await app.RunAsync();
 
-public partial class Program { }
