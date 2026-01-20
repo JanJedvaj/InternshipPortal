@@ -1,40 +1,38 @@
-﻿using InternshipPortal.API.Exceptions;
+﻿using InternshipPortal.API.Common;
+using InternshipPortal.API.Data.EF;
+using InternshipPortal.API.Exceptions;
 using InternshipPortal.API.Services.Categories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InternshipPortal.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/categories")]
     public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _service;
-        private readonly ICategoryFacade _facade;
         private readonly CategorySortingStrategyResolver _sortResolver;
         private readonly ILogger<CategoriesController> _logger;
 
         public CategoriesController(
             ICategoryService service,
-            ICategoryFacade facade,
             CategorySortingStrategyResolver sortResolver,
             ILogger<CategoriesController> logger)
         {
             _service = service;
-            _facade = facade;
             _sortResolver = sortResolver;
             _logger = logger;
         }
 
-        // GET: /api/Categories
-        // GET: /api/Categories?sort=mostUsed
+        // GET api/categories
+        // GET api/categories?sort=mostUsed
         [HttpGet]
-        public IActionResult GetAll([FromQuery] string sort = null)
+        public IActionResult GetAll([FromQuery] string? sort = null)
         {
             try
             {
                 var categories = _service.GetAll();
 
-                // Ako je tražen sort - koristi Strategy
                 if (!string.IsNullOrWhiteSpace(sort))
                 {
                     var strategy = _sortResolver.Resolve(sort);
@@ -46,12 +44,13 @@ namespace InternshipPortal.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška GetAll categories.");
-                return StatusCode(500, "Dogodila se greška.");
+                return StatusCode(500, ErrorMessages.InternalServerError);
             }
         }
 
+        // GET api/categories/{id}
         [HttpGet("{id:int}")]
-        public IActionResult Get(int id)
+        public ActionResult<Category> GetById(int id)
         {
             try
             {
@@ -61,57 +60,8 @@ namespace InternshipPortal.API.Controllers
             catch (NotFoundException ex) { return NotFound(ex.Message); }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greška Get category id={Id}", id);
-                return StatusCode(500, "Dogodila se greška.");
-            }
-        }
-
-        [HttpPost]
-        public IActionResult Create([FromBody] InternshipPortal.API.Data.EF.Category category)
-        {
-            try
-            {
-                var created = _service.Create(category);
-                return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
-            }
-            catch (ValidationException ex) { return BadRequest(ex.Message); }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Greška Create category.");
-                return StatusCode(500, "Dogodila se greška.");
-            }
-        }
-
-        [HttpPut("{id:int}")]
-        public IActionResult Update(int id, [FromBody] InternshipPortal.API.Data.EF.Category category)
-        {
-            try
-            {
-                return Ok(_service.Update(id, category));
-            }
-            catch (ValidationException ex) { return BadRequest(ex.Message); }
-            catch (NotFoundException ex) { return NotFound(ex.Message); }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Greška Update category id={Id}", id);
-                return StatusCode(500, "Dogodila se greška.");
-            }
-        }
-
-        [HttpDelete("{id:int}")]
-        public IActionResult Delete(int id)
-        {
-            try
-            {
-                _facade.DeleteCategorySafely(id);
-                return NoContent();
-            }
-            catch (ValidationException ex) { return BadRequest(ex.Message); }
-            catch (NotFoundException ex) { return NotFound(ex.Message); }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Greška Delete category id={Id}", id);
-                return StatusCode(500, "Dogodila se greška.");
+                _logger.LogError(ex, "Greška Get category by id.");
+                return StatusCode(500, ErrorMessages.InternalServerError);
             }
         }
     }
