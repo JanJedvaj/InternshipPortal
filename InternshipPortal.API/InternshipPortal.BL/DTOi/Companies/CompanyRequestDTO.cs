@@ -9,9 +9,9 @@ namespace InternshipPortal.BL.DTOi.Companies
         public string Name { get; set; } = string.Empty;
 
         [StringLength(200)]
-        public string Website { get; set; }
+        public string Website { get; set; } = string.Empty;
 
         [StringLength(100)]
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
     }
 }

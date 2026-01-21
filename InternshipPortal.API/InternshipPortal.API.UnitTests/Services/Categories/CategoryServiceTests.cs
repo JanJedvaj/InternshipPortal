@@ -20,7 +20,8 @@ namespace InternshipPortal.API.UnitTests.Services.Categories
         [Fact]
         public void GetAll_WhenRepoReturnsNull_ReturnsEmpty()
         {
-            _repo.Setup(r => r.GetAll()).Returns((IEnumerable<Category>)null);
+            _repo.Setup(r => r.GetAll()).Returns(Enumerable.Empty<Category>());
+
 
             var sut = CreateSut();
             var result = sut.GetAll();
@@ -38,7 +39,7 @@ namespace InternshipPortal.API.UnitTests.Services.Categories
         [Fact]
         public void GetById_NotFound_ThrowsNotFoundException()
         {
-            _repo.Setup(r => r.GetById(10)).Returns((Category)null);
+            _repo.Setup(r => r.GetById(10)).Returns((Category)null!);
 
             var sut = CreateSut();
             Assert.Throws<NotFoundException>(() => sut.GetById(10));
@@ -85,7 +86,7 @@ namespace InternshipPortal.API.UnitTests.Services.Categories
         [Fact]
         public void Update_NotFound_ThrowsNotFoundException()
         {
-            _repo.Setup(r => r.GetById(7)).Returns((Category)null);
+            _repo.Setup(r => r.GetById(7)).Returns((Category)null!);
 
             var sut = CreateSut();
             Assert.Throws<NotFoundException>(() => sut.Update(7, new Category { Name = "X" }));

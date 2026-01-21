@@ -17,7 +17,7 @@ namespace InternshipPortal.API.UnitTests.Services.Categories
             repo.Setup(r => r.GetAll()).Returns(new List<Internship>());
 
             var sut = new MostUsedCategorySortingStrategy(repo.Object);
-            var result = sut.Sort(null);
+            var result = sut.Sort(null!);
 
             Assert.Empty(result);
         }
