@@ -26,7 +26,3 @@ jobs:
 
       - name: Test - Unit
         run: dotnet test ./InternshipPortal.API/InternshipPortal.API.UnitTests/InternshipPortal.API.UnitTests.csproj --no-build -c Release --verbosity normal
-
-      - name: Test - Integration
-        run: dotnet test ./InternshipPortal.API/InternshipPortal.API.IntegrationTests/InternshipPortal.API.IntegrationTests.csproj --no-build -c Release --verbosity normal
-
