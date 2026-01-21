@@ -17,7 +17,7 @@ namespace InternshipPortal.API.UnitTests.Controllers.Categories
         private readonly Mock<ICategoryService> _service = new();
         private readonly Mock<ILogger<CategoriesController>> _logger = new();
 
-        private CategoriesController CreateSut(IEnumerable<ICategorySortingStrategy> strategies = null)
+        private CategoriesController CreateSut(IEnumerable<ICategorySortingStrategy>? strategies = null)
         {
             strategies ??= new ICategorySortingStrategy[] { new FakeMostUsedStrategy() };
             var resolver = new CategorySortingStrategyResolver(strategies);

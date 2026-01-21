@@ -16,7 +16,7 @@ namespace InternshipPortal.API.UnitTests.Services.Categories
                 new FakeStrategy()
             });
 
-            Assert.Throws<ArgumentException>(() => sut.Resolve(null));
+            Assert.Throws<ArgumentException>(() => sut.Resolve(null!));
         }
 
         [Fact]

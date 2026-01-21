@@ -14,7 +14,7 @@ namespace InternshipPortal.API.UnitTests.Services.Categories
             var nameStrategy = new Mock<ICategoryNameStrategy>();
             var sut = new DefaultCategoryFactory(nameStrategy.Object);
 
-            Assert.Throws<ValidationException>(() => sut.CreateNew(null));
+            Assert.Throws<ValidationException>(() => sut.CreateNew(null!));
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace InternshipPortal.API.UnitTests.Services.Categories
             var nameStrategy = new Mock<ICategoryNameStrategy>();
             var sut = new DefaultCategoryFactory(nameStrategy.Object);
 
-            Assert.Throws<ValidationException>(() => sut.ApplyUpdates(null, new Category { Name = "X" }));
+            Assert.Throws<ValidationException>(() => sut.ApplyUpdates(null!, new Category { Name = "X" }));
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace InternshipPortal.API.UnitTests.Services.Categories
             var nameStrategy = new Mock<ICategoryNameStrategy>();
             var sut = new DefaultCategoryFactory(nameStrategy.Object);
 
-            Assert.Throws<ValidationException>(() => sut.ApplyUpdates(new Category { Id = 1, Name = "Old" }, null));
+            Assert.Throws<ValidationException>(() => sut.ApplyUpdates(new Category { Id = 1, Name = "Old" }, null!));
         }
 
         [Fact]

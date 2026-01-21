@@ -13,7 +13,7 @@ namespace InternshipPortal.API.UnitTests.Services.Internships.Factories
         {
             var sut = new DefaultInternshipFactory();
 
-            Assert.Throws<ValidationException>(() => sut.CreateNew(null));
+            Assert.Throws<ValidationException>(() => sut.CreateNew(null!));
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace InternshipPortal.API.UnitTests.Services.Internships.Factories
             var sut = new DefaultInternshipFactory();
 
             var input = ValidInternship();
-            input.ShortDescription = null;
+            input.ShortDescription = null!;
 
             Assert.Throws<ValidationException>(() => sut.CreateNew(input));
         }
@@ -55,7 +55,7 @@ namespace InternshipPortal.API.UnitTests.Services.Internships.Factories
             var sut = new DefaultInternshipFactory();
 
             var input = ValidInternship();
-            input.Location = null;
+            input.Location = null!;
 
             Assert.Throws<ValidationException>(() => sut.CreateNew(input));
         }
@@ -149,7 +149,7 @@ namespace InternshipPortal.API.UnitTests.Services.Internships.Factories
         {
             var sut = new DefaultInternshipFactory();
 
-            Assert.Throws<ValidationException>(() => sut.ApplyUpdates(null, ValidInternship()));
+            Assert.Throws<ValidationException>(() => sut.ApplyUpdates(null!, ValidInternship()));
         }
 
         [Fact]
@@ -157,7 +157,7 @@ namespace InternshipPortal.API.UnitTests.Services.Internships.Factories
         {
             var sut = new DefaultInternshipFactory();
 
-            Assert.Throws<ValidationException>(() => sut.ApplyUpdates(ValidInternship(), null));
+            Assert.Throws<ValidationException>(() => sut.ApplyUpdates(ValidInternship(), null!));
         }
 
         [Fact]
