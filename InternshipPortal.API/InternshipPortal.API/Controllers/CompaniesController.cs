@@ -13,7 +13,12 @@ namespace InternshipPortal.API.Controllers
         private readonly ICompanyService _service;
         private readonly ILogger<CompaniesController> _logger;
 
-        public CompaniesController(ICompanyService service, ILogger<CompaniesController> logger)
+        
+        private const string GenericErrorMessage = "Dogodila se greška.";
+
+        public CompaniesController(
+            ICompanyService service,
+            ILogger<CompaniesController> logger)
         {
             _service = service;
             _logger = logger;
@@ -22,24 +27,36 @@ namespace InternshipPortal.API.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            try { return Ok(_service.GetAll()); }
+            try
+            {
+                return Ok(_service.GetAll());
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška GetAll companies.");
-                return StatusCode(500, "Dogodila se greška.");
+                return StatusCode(500, GenericErrorMessage);
             }
         }
 
         [HttpGet("{id:int}")]
         public IActionResult Get(int id)
         {
-            try { return Ok(_service.GetById(id)); }
-            catch (ValidationException ex) { return BadRequest(ex.Message); }
-            catch (NotFoundException ex) { return NotFound(ex.Message); }
+            try
+            {
+                return Ok(_service.GetById(id));
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška Get company id={Id}", id);
-                return StatusCode(500, "Dogodila se greška.");
+                return StatusCode(500, GenericErrorMessage);
             }
         }
 
@@ -58,14 +75,16 @@ namespace InternshipPortal.API.Controllers
                 var created = _service.Create(company);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
-            catch (ValidationException ex) { return BadRequest(ex.Message); }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška Create company.");
-                return StatusCode(500, "Dogodila se greška.");
+                return StatusCode(500, GenericErrorMessage);
             }
         }
-
 
         [HttpPut("{id:int}")]
         public IActionResult Update(int id, [FromBody] CompanyRequestDTO dto)
@@ -82,15 +101,20 @@ namespace InternshipPortal.API.Controllers
 
                 return Ok(_service.Update(id, company));
             }
-            catch (ValidationException ex) { return BadRequest(ex.Message); }
-            catch (NotFoundException ex) { return NotFound(ex.Message); }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška Update company id={Id}", id);
-                return StatusCode(500, "Dogodila se greška.");
+                return StatusCode(500, GenericErrorMessage);
             }
         }
-
 
         [HttpDelete("{id:int}")]
         public IActionResult Delete(int id)
@@ -100,12 +124,18 @@ namespace InternshipPortal.API.Controllers
                 _service.Delete(id);
                 return NoContent();
             }
-            catch (ValidationException ex) { return BadRequest(ex.Message); }
-            catch (NotFoundException ex) { return NotFound(ex.Message); }
+            catch (ValidationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška Delete company id={Id}", id);
-                return StatusCode(500, "Dogodila se greška.");
+                return StatusCode(500, GenericErrorMessage);
             }
         }
     }
