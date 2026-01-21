@@ -1,8 +1,18 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import PropTypes from "prop-types";
 import { getCategories, getCompanies, createInternship } from "../api";
 
 export default function AddInternshipForm({ token, onCreated }) {
+  const titleId = useId();
+  const shortDescId = useId();
+  const fullDescId = useId();
+  const locationId = useId();
+  const remoteId = useId();
+  const featuredId = useId();
+  const deadlineId = useId();
+  const categorySelectId = useId();
+  const companySelectId = useId();
+
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [fullDescription, setFullDescription] = useState("");
@@ -67,11 +77,9 @@ export default function AddInternshipForm({ token, onCreated }) {
       setCategoryId("");
       setCompanyId("");
 
-      if (onCreated) {
-        onCreated();
-      }
+      onCreated?.();
     } catch (err) {
-      setError(err.message || "Dogodila se greška.");
+      setError(err?.message || "Dogodila se greška.");
     } finally {
       setLoading(false);
     }
@@ -86,125 +94,120 @@ export default function AddInternshipForm({ token, onCreated }) {
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "8px" }}>
-          <label>
-            Naslov:
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              style={{ width: "100%", padding: "6px", marginTop: "4px" }}
-              required
-            />
-          </label>
+          <label htmlFor={titleId}>Naslov:</label>
+          <input
+            id={titleId}
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{ width: "100%", padding: "6px", marginTop: "4px" }}
+            required
+          />
         </div>
 
         <div style={{ marginBottom: "8px" }}>
-          <label>
-            Kratki opis:
-            <input
-              type="text"
-              value={shortDescription}
-              onChange={e => setShortDescription(e.target.value)}
-              style={{ width: "100%", padding: "6px", marginTop: "4px" }}
-              required
-            />
-          </label>
+          <label htmlFor={shortDescId}>Kratki opis:</label>
+          <input
+            id={shortDescId}
+            type="text"
+            value={shortDescription}
+            onChange={(e) => setShortDescription(e.target.value)}
+            style={{ width: "100%", padding: "6px", marginTop: "4px" }}
+            required
+          />
         </div>
 
         <div style={{ marginBottom: "8px" }}>
-          <label>
-            Puni opis:
-            <textarea
-              value={fullDescription}
-              onChange={e => setFullDescription(e.target.value)}
-              style={{ width: "100%", padding: "6px", marginTop: "4px" }}
-              rows={4}
-            />
-          </label>
+          <label htmlFor={fullDescId}>Puni opis:</label>
+          <textarea
+            id={fullDescId}
+            value={fullDescription}
+            onChange={(e) => setFullDescription(e.target.value)}
+            style={{ width: "100%", padding: "6px", marginTop: "4px" }}
+            rows={4}
+          />
         </div>
 
         <div style={{ marginBottom: "8px" }}>
-          <label>
-            Lokacija:
-            <input
-              type="text"
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              style={{ width: "100%", padding: "6px", marginTop: "4px" }}
-            />
-          </label>
+          <label htmlFor={locationId}>Lokacija:</label>
+          <input
+            id={locationId}
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            style={{ width: "100%", padding: "6px", marginTop: "4px" }}
+          />
         </div>
 
         <div style={{ marginBottom: "8px", display: "flex", gap: "16px" }}>
-          <label>
+          <div>
             <input
+              id={remoteId}
               type="checkbox"
               checked={remote}
-              onChange={e => setRemote(e.target.checked)}
+              onChange={(e) => setRemote(e.target.checked)}
               style={{ marginRight: "4px" }}
             />
-            Remote
-          </label>
+            <label htmlFor={remoteId}>Remote</label>
+          </div>
 
-          <label>
+          <div>
             <input
+              id={featuredId}
               type="checkbox"
               checked={isFeatured}
-              onChange={e => setIsFeatured(e.target.checked)}
+              onChange={(e) => setIsFeatured(e.target.checked)}
               style={{ marginRight: "4px" }}
             />
-            Istaknuta praksa
-          </label>
+            <label htmlFor={featuredId}>Istaknuta praksa</label>
+          </div>
         </div>
 
         <div style={{ marginBottom: "8px" }}>
-          <label>
-            Rok prijave:
-            <input
-              type="date"
-              value={deadline}
-              onChange={e => setDeadline(e.target.value)}
-              style={{ padding: "6px", marginLeft: "8px" }}
-            />
-          </label>
+          <label htmlFor={deadlineId}>Rok prijave:</label>
+          <input
+            id={deadlineId}
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            style={{ padding: "6px", marginLeft: "8px" }}
+          />
         </div>
 
         <div style={{ marginBottom: "8px" }}>
-          <label>
-            Kategorija:
-            <select
-              value={categoryId}
-              onChange={e => setCategoryId(e.target.value)}
-              style={{ width: "100%", padding: "6px", marginTop: "4px" }}
-              required
-            >
-              <option value="">-- odaberi kategoriju --</option>
-              {categories.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <label htmlFor={categorySelectId}>Kategorija:</label>
+          <select
+            id={categorySelectId}
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            style={{ width: "100%", padding: "6px", marginTop: "4px" }}
+            required
+          >
+            <option value="">-- odaberi kategoriju --</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={{ marginBottom: "8px" }}>
-          <label>
-            Kompanija:
-            <select
-              value={companyId}
-              onChange={e => setCompanyId(e.target.value)}
-              style={{ width: "100%", padding: "6px", marginTop: "4px" }}
-              required
-            >
-              <option value="">-- odaberi kompaniju --</option>
-              {companies.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <label htmlFor={companySelectId}>Kompanija:</label>
+          <select
+            id={companySelectId}
+            value={companyId}
+            onChange={(e) => setCompanyId(e.target.value)}
+            style={{ width: "100%", padding: "6px", marginTop: "4px" }}
+            required
+          >
+            <option value="">-- odaberi kompaniju --</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button type="submit" disabled={loading}>
@@ -214,3 +217,8 @@ export default function AddInternshipForm({ token, onCreated }) {
     </div>
   );
 }
+
+AddInternshipForm.propTypes = {
+  token: PropTypes.string,
+  onCreated: PropTypes.func,
+};
