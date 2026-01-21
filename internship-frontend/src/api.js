@@ -1,5 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:7027";
-
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:7027";
 
 export async function getInternships() {
   const response = await fetch(`${API_BASE_URL}/api/Internships`);
@@ -60,12 +60,9 @@ export async function register(username, password, confirmPassword) {
     throw new Error("Dogodila se greška prilikom registracije.");
   }
 
-  // { message, userId, username, role }
   return response.json();
 }
 
-
-// dohvaćanje kategorija
 export async function getCategories() {
   const response = await fetch(`${API_BASE_URL}/api/Categories`);
 
@@ -76,7 +73,6 @@ export async function getCategories() {
   return response.json();
 }
 
-// dohvaćanje tvrtki
 export async function getCompanies() {
   const response = await fetch(`${API_BASE_URL}/api/Companies`);
 
@@ -87,7 +83,6 @@ export async function getCompanies() {
   return response.json();
 }
 
-// kreiranje internshipa
 export async function createInternship(internship, token) {
   const response = await fetch(`${API_BASE_URL}/api/Internships`, {
     method: "POST",
@@ -110,7 +105,6 @@ export async function createInternship(internship, token) {
   return response.json();
 }
 
-// UPDATE internshipa
 export async function updateInternship(id, internship) {
   const response = await fetch(`${API_BASE_URL}/api/Internships/${id}`, {
     method: "PUT",
@@ -132,7 +126,6 @@ export async function updateInternship(id, internship) {
   return response.json();
 }
 
-// DELETE internshipa
 export async function deleteInternship(id) {
   const response = await fetch(`${API_BASE_URL}/api/Internships/${id}`, {
     method: "DELETE",
@@ -171,7 +164,10 @@ export async function searchInternships(criteria = {}) {
   if (criteria.pageSize) params.append("pageSize", criteria.pageSize);
 
   const query = params.toString();
-  const url = `${API_BASE_URL}/api/Internships/search${query ? `?${query}` : ""}`;
+
+  // Fix Sonar: avoid nested template literals (S4624).
+  const baseUrl = `${API_BASE_URL}/api/Internships/search`;
+  const url = query ? `${baseUrl}?${query}` : baseUrl;
 
   const response = await fetch(url);
 
@@ -181,4 +177,3 @@ export async function searchInternships(criteria = {}) {
 
   return response.json();
 }
-

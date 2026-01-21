@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useId, useState } from "react";
+import PropTypes from "prop-types";
 import { register, login } from "../api";
 
 export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
+  const usernameId = useId();
+  const passwordId = useId();
+  const confirmPasswordId = useId();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -13,92 +18,79 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
     setError("");
     setLoading(true);
 
-    try { /////AKO je uspjesna registracija ide auto login
-      
+    try {
+      // Ako je uspješna registracija ide auto login
       await register(username, password, confirmPassword);
 
-      
       const loginResponse = await login(username, password);
-
-      if (onRegisterSuccess) {
-        onRegisterSuccess(loginResponse);
-      }
+      onRegisterSuccess?.(loginResponse);
     } catch (err) {
-      setError(err.message || "Dogodila se greška prilikom registracije.");
+      setError(err?.message || "Dogodila se greška prilikom registracije.");
     } finally {
       setLoading(false);
     }
   }
 
   function handleSwitchToLoginClick() {
-    if (onSwitchToLogin) {
-      onSwitchToLogin();
-    }
+    onSwitchToLogin?.();
   }
 
   return (
     <div className="form-card form-card--narrow">
       <h2>Registracija</h2>
 
-      {error && (
-        <p style={{ color: "red", marginBottom: "10px" }}>
-          {error}
-        </p>
-      )}
+      {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "18px", fontSize: "1.08rem" }}>
-          <label>
-            Korisničko ime:
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "14px 14px",
-                marginTop: "8px",
-                fontSize: "1.05rem",
-              }}
-              required
-            />
-          </label>
+          <label htmlFor={usernameId}>Korisničko ime:</label>
+          <input
+            id={usernameId}
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "14px 14px",
+              marginTop: "8px",
+              fontSize: "1.05rem",
+            }}
+            required
+          />
         </div>
 
         <div style={{ marginBottom: "18px", fontSize: "1.08rem" }}>
-          <label>
-            Lozinka:
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "14px 14px",
-                marginTop: "8px",
-                fontSize: "1.05rem",
-              }}
-              required
-            />
-          </label>
+          <label htmlFor={passwordId}>Lozinka:</label>
+          <input
+            id={passwordId}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "14px 14px",
+              marginTop: "8px",
+              fontSize: "1.05rem",
+            }}
+            required
+          />
         </div>
 
         <div style={{ marginBottom: "18px", fontSize: "1.08rem" }}>
-          <label>
-            Potvrdi lozinku:
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "14px 14px",
-                marginTop: "8px",
-                fontSize: "1.05rem",
-              }}
-              required
-            />
-          </label>
+          <label htmlFor={confirmPasswordId}>Potvrdi lozinku:</label>
+          <input
+            id={confirmPasswordId}
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "14px 14px",
+              marginTop: "8px",
+              fontSize: "1.05rem",
+            }}
+            required
+          />
         </div>
 
         <button
@@ -122,7 +114,7 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
             fontSize: "0.95rem",
           }}
         >
-          Već imaš račun?{" "}
+          <span>Već imaš račun? </span>
           <button
             type="button"
             onClick={handleSwitchToLoginClick}
@@ -141,3 +133,8 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }) {
     </div>
   );
 }
+
+RegisterForm.propTypes = {
+  onRegisterSuccess: PropTypes.func,
+  onSwitchToLogin: PropTypes.func,
+};

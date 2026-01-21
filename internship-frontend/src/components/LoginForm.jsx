@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useId, useState } from "react";
+import PropTypes from "prop-types";
 import { login } from "../api";
 
 export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
+  const usernameId = useId();
+  const passwordId = useId();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,12 +18,9 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
 
     try {
       const data = await login(username, password);
-
-      if (onLoginSuccess) {
-        onLoginSuccess(data);
-      }
+      onLoginSuccess?.(data);
     } catch (err) {
-      setError(err.message || "Dogodila se greška prilikom prijave.");
+      setError(err?.message || "Dogodila se greška prilikom prijave.");
     } finally {
       setLoading(false);
     }
@@ -29,47 +30,41 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
     <div className="form-card form-card--narrow">
       <h2>Prijava</h2>
 
-      {error && (
-        <p style={{ color: "red", marginBottom: "10px" }}>
-          {error}
-        </p>
-      )}
+      {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: "18px", fontSize: "1.08rem" }}>
-          <label>
-            Korisničko ime:
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "14px 14px",
-                marginTop: "8px",
-                fontSize: "1.05rem",
-              }}
-              required
-            />
-          </label>
+          <label htmlFor={usernameId}>Korisničko ime:</label>
+          <input
+            id={usernameId}
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "14px 14px",
+              marginTop: "8px",
+              fontSize: "1.05rem",
+            }}
+            required
+          />
         </div>
 
         <div style={{ marginBottom: "18px", fontSize: "1.08rem" }}>
-          <label>
-            Lozinka:
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "14px 14px",
-                marginTop: "8px",
-                fontSize: "1.05rem",
-              }}
-              required
-            />
-          </label>
+          <label htmlFor={passwordId}>Lozinka:</label>
+          <input
+            id={passwordId}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "14px 14px",
+              marginTop: "8px",
+              fontSize: "1.05rem",
+            }}
+            required
+          />
         </div>
 
         <button
@@ -93,10 +88,10 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
             fontSize: "0.95rem",
           }}
         >
-          Nemaš račun?{" "}
+          <span>Nemaš račun? </span>
           <button
             type="button"
-            onClick={() => onSwitchToRegister && onSwitchToRegister()}
+            onClick={() => onSwitchToRegister?.()}
             style={{
               background: "none",
               border: "none",
@@ -112,3 +107,8 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister }) {
     </div>
   );
 }
+
+LoginForm.propTypes = {
+  onLoginSuccess: PropTypes.func,
+  onSwitchToRegister: PropTypes.func,
+};
