@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   deleteInternship,
   updateInternship,
@@ -13,6 +13,8 @@ function formatDate(dateString) {
 }
 
 export default function InternshipList() {
+  const sortDescendingId = useId();
+
   const [internships, setInternships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -20,9 +22,9 @@ export default function InternshipList() {
 
   const [editItem, setEditItem] = useState(null);
 
- //STAnja za search i Sort
+
   const [keyword, setKeyword] = useState("");
-  const [sortBy, setSortBy] = useState("date");       // "date" | "deadline" | "title"
+  const [sortBy, setSortBy] = useState("date"); 
   const [sortDescending, setSortDescending] = useState(true);
 
   async function load() {
@@ -41,20 +43,21 @@ export default function InternshipList() {
 
       setInternships(result.items || []);
     } catch (err) {
-      setError(err.message || "Dogodila se greška prilikom dohvaćanja.");
+      setError(err?.message || "Dogodila se greška prilikom dohvaćanja.");
     } finally {
       setLoading(false);
     }
   }
 
-  // defaultni krijterij
+  
   useEffect(() => {
     load();
-    
   }, []);
 
   async function handleDelete(id) {
-    const ok = window.confirm("Jesi li siguran da želiš obrisati ovaj oglas?");
+    const ok = globalThis.confirm(
+      "Jesi li siguran da želiš obrisati ovaj oglas?"
+    );
     if (!ok) return;
 
     setActionError("");
@@ -63,7 +66,7 @@ export default function InternshipList() {
       await deleteInternship(id);
       await load();
     } catch (err) {
-      setActionError(err.message || "Greška prilikom brisanja.");
+      setActionError(err?.message || "Greška prilikom brisanja.");
     }
   }
 
@@ -75,7 +78,7 @@ export default function InternshipList() {
       setEditItem(null);
       await load();
     } catch (err) {
-      setActionError(err.message || "Greška prilikom ažuriranja.");
+      setActionError(err?.message || "Greška prilikom ažuriranja.");
     }
   }
 
@@ -84,7 +87,7 @@ export default function InternshipList() {
     setSortBy("date");
     setSortDescending(true);
 
-    // pričekaj da React upiše novi state pa onda reload
+   
     setTimeout(() => {
       load();
     }, 0);
@@ -95,7 +98,7 @@ export default function InternshipList() {
 
   return (
     <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-      {/* SEARCH + SORT BAR */}
+      {}
       <div
         style={{
           marginBottom: "16px",
@@ -133,14 +136,15 @@ export default function InternshipList() {
             <option value="title">Naslov</option>
           </select>
 
-          <label style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <input
+              id={sortDescendingId}
               type="checkbox"
               checked={sortDescending}
               onChange={(e) => setSortDescending(e.target.checked)}
             />
-            Silazno
-          </label>
+            <label htmlFor={sortDescendingId}>Silazno</label>
+          </div>
 
           <button type="button" onClick={load}>
             Primijeni
@@ -152,9 +156,7 @@ export default function InternshipList() {
         </div>
       </div>
 
-      {actionError && (
-        <p style={{ color: "red" }}>Akcija: {actionError}</p>
-      )}
+      {actionError && <p style={{ color: "red" }}>Akcija: {actionError}</p>}
 
       {internships.map((i) => (
         <div
@@ -185,8 +187,12 @@ export default function InternshipList() {
           )}
 
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <button onClick={() => setEditItem(i)}>Uredi</button>
-            <button onClick={() => handleDelete(i.id)}>Obriši</button>
+            <button type="button" onClick={() => setEditItem(i)}>
+              Uredi
+            </button>
+            <button type="button" onClick={() => handleDelete(i.id)}>
+              Obriši
+            </button>
           </div>
 
           {editItem?.id === i.id && (
