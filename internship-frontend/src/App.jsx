@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
 import InternshipList from "./components/InternshipList";
@@ -11,9 +10,8 @@ function App() {
     return stored ? JSON.parse(stored) : null;
   });
 
-  const [reloadId, setReloadId] = useState(0); 
+  const [reloadId, setReloadId] = useState(0);
   const [showRegister, setShowRegister] = useState(false);
-
 
   function handleLoginSuccess(data) {
     const authData = {
@@ -33,10 +31,74 @@ function App() {
   }
 
   function handleInternshipCreated() {
-    setReloadId(prev => prev + 1);
+    setReloadId((prev) => prev + 1);
   }
 
-  const isLoggedIn = !!auth;
+  const isLoggedIn = Boolean(auth);
+
+  // Fixes Sonar: avoid negated-condition driven style (S7735) + makes it clearer.
+  const mainStyle = useMemo(() => {
+    if (isLoggedIn) {
+      return { padding: "0 16px 32px" };
+    }
+
+    return {
+      minHeight: "calc(100vh - 80px)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "0 16px",
+    };
+  }, [isLoggedIn]);
+
+  // Fixes Sonar: remove nested ternary (S3358) + simplifies conditional rendering.
+  const mainContent = useMemo(() => {
+    if (!isLoggedIn) {
+      if (showRegister) {
+        return (
+          <RegisterForm
+            onRegisterSuccess={handleLoginSuccess}
+            onSwitchToLogin={() => setShowRegister(false)}
+          />
+        );
+      }
+
+      return (
+        <LoginForm
+          onLoginSuccess={handleLoginSuccess}
+          onSwitchToRegister={() => setShowRegister(true)}
+        />
+      );
+    }
+
+    return (
+      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <div>
+            Prijavljen kao <strong>{auth.username}</strong> ({auth.role})
+          </div>
+          <button type="button" onClick={handleLogout}>
+            Odjava
+          </button>
+        </div>
+
+        <AddInternshipForm token={auth.token} onCreated={handleInternshipCreated} />
+
+        <h2 style={{ textAlign: "center", marginBottom: "16px" }}>
+          Dostupne prakse
+        </h2>
+
+        <InternshipList key={reloadId} />
+      </div>
+    );
+  }, [auth, isLoggedIn, reloadId, showRegister]);
 
   return (
     <div
@@ -56,61 +118,7 @@ function App() {
         <h1 style={{ margin: 0, textAlign: "center" }}>Internship Portal</h1>
       </header>
 
-      <main
-        style={
-          !isLoggedIn
-            ? {
-                minHeight: "calc(100vh - 80px)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "0 16px",
-              }
-            : { padding: "0 16px 32px" }
-        }
-      >
-               {!isLoggedIn ? (
-          showRegister ? (
-            <RegisterForm
-              onRegisterSuccess={handleLoginSuccess}
-              onSwitchToLogin={() => setShowRegister(false)}
-            />
-          ) : (
-            <LoginForm
-              onLoginSuccess={handleLoginSuccess}
-              onSwitchToRegister={() => setShowRegister(true)}
-            />
-          )
-        ) : (
-          <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px",
-              }}
-            >
-              <div>
-                Prijavljen kao <strong>{auth.username}</strong> ({auth.role})
-              </div>
-              <button onClick={handleLogout}>Odjava</button>
-            </div>
-
-            <AddInternshipForm
-              token={auth.token}
-              onCreated={handleInternshipCreated}
-            />
-
-            <h2 style={{ textAlign: "center", marginBottom: "16px" }}>
-              Dostupne prakse
-            </h2>
-
-            <InternshipList key={reloadId} />
-          </div>
-        )}
-      </main>
+      <main style={mainStyle}>{mainContent}</main>
     </div>
   );
 }
