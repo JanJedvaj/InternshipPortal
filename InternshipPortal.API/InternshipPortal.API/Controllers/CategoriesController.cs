@@ -27,6 +27,8 @@ namespace InternshipPortal.API.Controllers
         // GET api/categories
         // GET api/categories?sort=mostUsed
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<Category>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult GetAll([FromQuery] string? sort = null)
         {
             try
@@ -44,9 +46,13 @@ namespace InternshipPortal.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Greška GetAll categories.");
-                return StatusCode(500, ErrorMessages.InternalServerError);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ErrorMessages.InternalServerError
+                );
             }
         }
+
 
         // GET api/categories/{id}
         [HttpGet("{id:int}")]
